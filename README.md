@@ -122,7 +122,7 @@ If you see "Bluetooth Not Available" message, your browser does not support Web 
 
 ## License
 
-[MIT License](LICENSE)
+[MIT License]
 
 ## Acknowledgments
 
