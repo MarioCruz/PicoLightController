@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PicoLight Controller v3</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+  />
+  <style>
+    :root {
+      --primary-color: #4c6ef5;
+      --secondary-color: #3b5bdb;
+      --success-color: #40c057;
+      --danger-color: #fa5252;
+      --light-bg: #f8f9fa;
+      --dark-bg: #343a40;
+      --text-color: #212529;
+      --border-radius: 8px;
+      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      --card-bg: white;
+      --border-color: #eee;
+    }
+
+    /* Dark theme variables */
+    html[data-theme='dark'] {
+      --primary-color: #748ffc;
+      --secondary-color: #5c7cfa;
+      --light-bg: #222;
+      --dark-bg: #111;
+      --text-color: #e9ecef;
+      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      --card-bg: #333;
+      --border-color: #444;
+    }
+
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--light-bg);
+      color: var(--text-color);
+      line-height: 1.6;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Updated header with flex layout */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .header-left {
+      text-align: left;
+    }
+
+    .header-right {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Theme toggle button */
+    .theme-toggle {
+      background: none;
+      border: none;
+      color: var(--text-color);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.3s;
+    }
+
+    .theme-toggle:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    html[data-theme='dark'] .theme-toggle:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Updated connection card to be more compact */
+    .connection-widget {
+      background-color: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      padding: 12px;
+      min-width: 180px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: background-color 0.3s, box-shadow 0.3s;
+    }
+
+    .connection-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .connection-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin: 0;
+    }
+
+    h1 {
+      color: var(--primary-color);
+      margin-bottom: 10px;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      padding: 20px;
+      transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin: 0;
+    }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .status-connected {
+      background-color: var(--success-color);
+      color: white;
+    }
+
+    .status-disconnected {
+      background-color: #dee2e6;
+      color: var(--text-color);
+    }
+
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    button:hover {
+      background-color: var(--secondary-color);
+    }
+
+    button:disabled {
+      background-color: #adb5bd;
+      cursor: not-allowed;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .button-full {
+      width: 100%;
+    }
+
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      margin-bottom: 15px;
+      font-size: 1rem;
+    }
+
+    .preset-recipes {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .preset-button {
+      padding: 8px;
+      text-align: center;
+      border-radius: var(--border-radius);
+      font-size: 0.85rem;
+      background-color: #e9ecef;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text-color);
+    }
+
+    .preset-button:hover {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .color-controls {
+      margin-top: 20px;
+    }
+
+    .slider-group {
+      margin-bottom: 15px;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .slider-label span:first-child {
+      font-weight: 600;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      -webkit-appearance: none;
+      height: 10px;
+      border-radius: 5px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      cursor: pointer;
+    }
+
+    #redSlider::-webkit-slider-runnable-track {
+      background: linear-gradient(to right, #000, #f00);
+    }
+    #greenSlider::-webkit-slider-runnable-track {
+      background: linear-gradient(to right, #000, #0f0);
+    }
+    #blueSlider::-webkit-slider-runnable-track {
+      background: linear-gradient(to right, #000, #00f);
+    }
+    #whiteSlider::-webkit-slider-runnable-track {
+      background: linear-gradient(to right, #000, #fff);
+    }
+
+    #redSlider::-moz-range-track {
+      background: linear-gradient(to right, #000, #f00);
+    }
+    #greenSlider::-moz-range-track {
+      background: linear-gradient(to right, #000, #0f0);
+    }
+    #blueSlider::-moz-range-track {
+      background: linear-gradient(to right, #000, #00f);
+    }
+    #whiteSlider::-moz-range-track {
+      background: linear-gradient(to right, #000, #fff);
+    }
+
+    .color-preview {
+      width: 100%;
+      height: 40px;
+      border-radius: var(--border-radius);
+      margin-bottom: 15px;
+      box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+      border: 1px solid #ddd;
+    }
+
+    .recipes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .recipe-card {
+      background-color: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 15px;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s, background-color 0.3s;
+    }
+
+    .recipe-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .recipe-title {
+      font-weight: 600;
+      text-align: center;
+      margin: 5px 0;
+    }
+
+    .recipe-buttons {
+      display: flex;
+      justify-content: center;
+      margin-top: 8px;
+      gap: 5px;
+    }
+
+    .recipe-button {
+      padding: 5px 10px;
+      font-size: 0.75rem;
+      border-radius: 4px;
+    }
+
+    .save-btn {
+      background-color: var(--success-color);
+    }
+
+    .custom-recipes-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 25px;
+      margin-bottom: 10px;
+    }
+
+    /* TOAST in center instead of top-right */
+    .toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: #333;
+      color: white;
+      padding: 15px 20px;
+      border-radius: var(--border-radius);
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      z-index: 1000;
+      text-align: center;
+      min-width: 200px;
+      max-width: 60%;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    
+    /* Recipe section improvements */
+    .recipe-categories {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .category-btn {
+      background-color: #e9ecef;
+      color: var(--text-color);
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .category-btn.active {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    html[data-theme='dark'] .category-btn {
+      background-color: #444;
+    }
+
+    .recipe-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 10px;
+    }
+
+    .recipe-item {
+      background-color: #f8f9fa;
+      border-radius: var(--border-radius);
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      border: 2px solid transparent;
+    }
+
+    html[data-theme='dark'] .recipe-item {
+      background-color: #444;
+    }
+
+    .recipe-item:hover {
+      transform: translateY(-3px);
+      background-color: #e9ecef;
+    }
+
+    html[data-theme='dark'] .recipe-item:hover {
+      background-color: #555;
+    }
+
+    .recipe-item.active {
+      border-color: var(--primary-color);
+      background-color: rgba(76, 110, 245, 0.1);
+    }
+
+    html[data-theme='dark'] .recipe-item.active {
+      background-color: rgba(76, 110, 245, 0.2);
+    }
+
+    .recipe-color {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin: 0 auto 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .recipe-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    /* Spinner styles */
+    .spinner-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1500;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0s 0.3s;
+    }
+
+    .spinner-overlay.active {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.3s;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 6px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--primary-color);
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .spinner-text {
+      color: white;
+      margin-top: 15px;
+      font-weight: 500;
+    }
+
+    /* Footer styles */
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      color: #666;
+      font-size: 0.8rem;
+      padding: 20px 0;
+      border-top: 1px solid var(--border-color);
+    }
+
+    footer a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Help dialog styles */
+    .help-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 2000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0s 0.3s;
+    }
+
+    .help-overlay.active {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.3s;
+    }
+
+    .help-dialog {
+      background-color: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      padding: 20px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .help-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+
+    .help-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-color);
+      padding: 0;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 560px) {
+      header {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .header-left {
+        text-align: center;
+      }
+      
+      .header-right {
+        width: 100%;
+      }
+      
+      .connection-widget {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-left">
+      <h1><i class="fas fa-lightbulb"></i> PicoLight Controller v3</h1>
+      <p>Control your RGBW LED light settings wirelessly over Bluetooth </p>
+    </div>
+    <div class="header-right">
+      <button id="themeToggle" class="theme-toggle" title="Toggle dark/light mode">
+        <i class="fas fa-moon"></i>
+      </button>
+      <div class="connection-widget">
+        <div class="connection-header">
+          <h3 class="connection-title">Connection</h3>
+          <span id="connectionStatus" class="status-badge status-disconnected">Disconnected</span>
+        </div>
+        <button id="connectButton" class="button-full">
+          <i class="fas fa-bluetooth"></i> Connect
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Light Recipes Card -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Light Recipes</h2>
+    </div>
+    
+    <!-- Category navigation -->
+    <div class="recipe-categories">
+      <button class="category-btn active" data-category="all">All</button>
+      <button class="category-btn" data-category="basic">Basic</button>
+      <button class="category-btn" data-category="plant">Plants</button>
+      <button class="category-btn" data-category="mood">Mood</button>
+    </div>
+    
+    <!-- Recipe grid with improved layout -->
+    <div class="recipe-grid" id="recipeGrid">
+      <!-- Recipes will be added here dynamically -->
+    </div>
+    
+    <!-- Keep the original select dropdown for compatibility, but hide it -->
+    <select id="recipeSelect" disabled style="display: none;">
+      <option value="" disabled selected>Select a recipe</option>
+    </select>
+  </div>
+
+  <!-- Optional Lights ON/OFF Card -->
+  <div class="card" style="margin-top: 20px;">
+    <div class="card-header">
+      <h2 class="card-title">On/Off Controls</h2>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap: wrap;">
+      <button id="lightsOnBtn" style="flex:1;" disabled>
+        <i class="fas fa-lightbulb"></i> Lights On
+      </button>
+      <button id="lightsOffBtn" style="flex:1;" disabled>
+        <i class="fas fa-power-off"></i> Lights Off
+      </button>
+    </div>
+  </div>
+
+  <!-- Custom Color Card -->
+  <div class="card" style="margin-top: 20px;">
+    <div class="card-header">
+      <h2 class="card-title">Custom Color</h2>
+    </div>
+    <div class="color-preview" id="colorPreview"></div>
+    <div class="color-controls">
+      <div class="slider-group">
+        <div class="slider-label">
+          <span>Red</span>
+          <span id="redValue">0</span>
+        </div>
+        <input type="range" id="redSlider" min="0" max="255" value="0" disabled />
+      </div>
+      <div class="slider-group">
+        <div class="slider-label">
+          <span>Green</span>
+          <span id="greenValue">0</span>
+        </div>
+        <input type="range" id="greenSlider" min="0" max="255" value="0" disabled />
+      </div>
+      <div class="slider-group">
+        <div class="slider-label">
+          <span>Blue</span>
+          <span id="blueValue">0</span>
+        </div>
+        <input type="range" id="blueSlider" min="0" max="255" value="0" disabled />
+      </div>
+      <div class="slider-group">
+        <div class="slider-label">
+          <span>White</span>
+          <span id="whiteValue">0</span>
+        </div>
+        <input type="range" id="whiteSlider" min="0" max="255" value="0" disabled />
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button id="applyCustomColor" disabled>
+        <i class="fas fa-paint-brush"></i> Apply Color
+      </button>
+      <button id="saveRecipeBtn" disabled>
+        <i class="fas fa-save"></i> Save as Recipe
+      </button>
+    </div>
+  </div>
+
+  <!-- Custom Recipes Grid -->
+  <div class="custom-recipes-title">
+    <h2>My Custom Recipes</h2>
+    <button
+      id="clearRecipesBtn"
+      style="padding: 5px 10px; background-color: var(--danger-color);"
+    >
+      <i class="fas fa-trash"></i> Clear All
+    </button>
+  </div>
+  <div class="recipes-grid" id="customRecipesGrid">
+    <!-- Custom recipes will be displayed here -->
+  </div>
+
+  <!-- Footer with version information -->
+  <footer>
+    <p>PicoLight Controller v3.1 | <a href="#" id="showHelp">Help</a> | <a href="https://github.com/mariocruz/picolight" target="_blank">GitHub</a></p>
+  </footer>
+</div>
+
+<!-- Centered Toast Notification -->
+<div class="toast" id="toast"></div>
+
+<!-- Loading Spinner -->
+<div class="spinner-overlay" id="spinnerOverlay">
+  <div>
+    <div class="spinner"></div>
+    <div class="spinner-text" id="spinnerText">Processing...</div>
+  </div>
+</div>
+
+<!-- Help Dialog -->
+<div class="help-overlay" id="helpOverlay">
+  <div class="help-dialog">
+    <div class="help-header">
+      <h2>PicoLight Controller Help</h2>
+      <button class="help-close" id="closeHelp">&times;</button>
+    </div>
+    <div class="help-content">
+      <h3>Getting Started</h3>
+      <p>Connect to your PicoLight device using the Connect button in the top right. Your browser must support Web Bluetooth.</p>
+      
+      <h3>Light Recipes</h3>
+      <p>Choose from predefined light recipes optimized for different purposes. Click on any recipe to apply it.</p>
+      
+      <h3>Custom Colors</h3>
+      <p>Use the sliders to create your own RGBW color. Click "Apply Color" to send it to the light.</p>
+      
+      <h3>Saving Recipes</h3>
+      <p>After creating a custom color you like, click "Save as Recipe" to add it to your personal collection.</p>
+      
+      <h3>Troubleshooting</h3>
+      <ul>
+        <li>If connection fails, ensure your PicoLight device is powered on and in range.</li>
+        <li>Only Chrome, Edge, and other Chromium-based browsers support Web Bluetooth.</li>
+        <li>On mobile devices, ensure Bluetooth is enabled and location permissions are granted.</li>
+      </ul>
+      
+      <h3>About</h3>
+      <p>PicoLight Controller v3.1 - A web interface for controlling RGBW lighting via Web Bluetooth.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // BLE UUIDs - matching your MicroPython configuration
+  const serviceUUID = "19b10000-e8f2-537e-4f6c-d104768a1214";
+  const recipeCharUUID = "19b10001-e8f2-537e-4f6c-d104768a1214";
+  const customCharUUID = "19b10002-e8f2-537e-4f6c-d104768a1214";
+  const controlCharUUID = "19b10003-e8f2-537e-4f6c-d104768a1214";
+
+  // UI Elements
+  const connectButton = document.getElementById("connectButton");
+  const connectionStatus = document.getElementById("connectionStatus");
+  const recipeSelect = document.getElementById("recipeSelect");
+  const colorPreview = document.getElementById("colorPreview");
+  const redSlider = document.getElementById("redSlider");
+  const greenSlider = document.getElementById("greenSlider");
+  const blueSlider = document.getElementById("blueSlider");
+  const whiteSlider = document.getElementById("whiteSlider");
+  const redValue = document.getElementById("redValue");
+  const greenValue = document.getElementById("greenValue");
+  const blueValue = document.getElementById("blueValue");
+  const whiteValue = document.getElementById("whiteValue");
+  const applyCustomColor = document.getElementById("applyCustomColor");
+  const saveRecipeBtn = document.getElementById("saveRecipeBtn");
+  const customRecipesGrid = document.getElementById("customRecipesGrid");
+  const clearRecipesBtn = document.getElementById("clearRecipesBtn");
+  const toastElement = document.getElementById("toast");
+  const recipeGrid = document.getElementById("recipeGrid");
+
+  // Theme toggle
+  const themeToggle = document.getElementById("themeToggle");
+
+  // Help dialog elements
+  const showHelpBtn = document.getElementById("showHelp");
+  const helpOverlay = document.getElementById("helpOverlay");
+  const closeHelpBtn = document.getElementById("closeHelp");
+
+  // New optional On/Off buttons
+  const lightsOnBtn = document.getElementById("lightsOnBtn");
+  const lightsOffBtn = document.getElementById("lightsOffBtn");
+
+  // BLE connection variables
+  let bleDevice;
+  let bleServer;
+  let recipeCharacteristic;
+  let customCharacteristic;
+  let controlCharacteristic;
+
+  // Connection retry variables
+  let connectionAttempts = 0;
+  const MAX_RETRY_ATTEMPTS = 3;
+
+  // Predefined recipes from your config
+  const recipes = [
+    "balanced",
+    "warm",
+    "cool",
+    "daylight",
+    "veg_growth",
+    "bloom",
+    "seedling",
+    "succulent",
+    "purple_glow",
+    "sunrise",
+    "sunset",
+    "forest",
+    "aquarium",
+    "night_light",
+    "inspection",
+    "off",
+  ];
+
+  // Recipe color approximations
+  const recipeColors = {
+    balanced: "rgb(255, 64, 128)",
+    warm: "rgb(255, 140, 20)",
+    cool: "rgb(180, 200, 255)",
+    daylight: "rgb(255, 230, 210)",
+    veg_growth: "rgb(50, 255, 70)",
+    bloom: "rgb(255, 100, 10)",
+    seedling: "rgb(100, 100, 200)",
+    succulent: "rgb(220, 180, 40)",
+    purple_glow: "rgb(180, 0, 255)",
+    sunrise: "rgb(255, 50, 20)",
+    sunset: "rgb(255, 30, 0)",
+    forest: "rgb(30, 200, 30)",
+    aquarium: "rgb(0, 200, 255)",
+    night_light: "rgb(50, 20, 0)",
+    inspection: "rgb(255, 255, 255)",
+    off: "rgb(0, 0, 0)",
+  };
+  
+  // Recipe Category Map
+  const recipeCategories = {
+    // Basic Recipes
+    balanced: "basic",
+    warm: "basic",
+    cool: "basic",
+    daylight: "basic",
+    inspection: "basic",
+    night_light: "basic",
+    off: "basic",
+    
+    // Plant Recipes
+    veg_growth: "plant",
+    bloom: "plant",
+    seedling: "plant",
+    succulent: "plant",
+    forest: "plant",
+    
+    // Mood Recipes
+    purple_glow: "mood",
+    sunrise: "mood",
+    sunset: "mood",
+    aquarium: "mood"
+  };
+
+    // Custom recipes storage
+  let customRecipes = loadCustomRecipes();
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Performance Optimization - Throttle Function
+  // ─────────────────────────────────────────────────────────────────────────────
+  function throttle(func, limit) {
+    let inThrottle;
+    return function() {
+      const args = arguments;
+      const context = this;
+      if (!inThrottle) {
+        func.apply(context, args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
+      }
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Helper Functions for Disabling/Enabling UI
+  // ─────────────────────────────────────────────────────────────────────────────
+  function disableUIControls() {
+    // Disable all buttons and sliders
+    document.querySelectorAll("button").forEach((btn) => (btn.disabled = true));
+    redSlider.disabled = true;
+    greenSlider.disabled = true;
+    blueSlider.disabled = true;
+    whiteSlider.disabled = true;
+    
+    // Keep theme toggle and help button enabled
+    themeToggle.disabled = false;
+    showHelpBtn.disabled = false;
+  }
+
+  function enableUIControls() {
+    // Re-enable all controls if connected
+    if (bleDevice && bleDevice.gatt.connected) {
+      document.querySelectorAll("button").forEach((btn) => (btn.disabled = false));
+      recipeSelect.disabled = false;
+      redSlider.disabled = false;
+      greenSlider.disabled = false;
+      blueSlider.disabled = false;
+      whiteSlider.disabled = false;
+    } else {
+      // If not connected, only certain buttons should be active
+      document.querySelectorAll("button").forEach((btn) => (btn.disabled = true));
+      connectButton.disabled = false;
+      themeToggle.disabled = false;
+      showHelpBtn.disabled = false;
+    }
+  }
+  
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Theme Toggle Functionality
+  // ─────────────────────────────────────────────────────────────────────────────
+  function toggleTheme() {
+    const htmlElement = document.documentElement;
+    const currentTheme = htmlElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    htmlElement.setAttribute('data-theme', newTheme);
+    
+    // Update theme toggle icon
+    if (newTheme === 'dark') {
+      themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+      themeToggle.title = "Switch to light mode";
+    } else {
+      themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+      themeToggle.title = "Switch to dark mode";
+    }
+    
+    // Save theme preference
+    localStorage.setItem('picolight-theme', newTheme);
+  }
+  
+  // Load saved theme preference
+  function loadThemePreference() {
+    const savedTheme = localStorage.getItem('picolight-theme');
+    if (savedTheme) {
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      
+      if (savedTheme === 'dark') {
+        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        themeToggle.title = "Switch to light mode";
+      }
+    }
+  }
+  
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Help Dialog Functions
+  // ─────────────────────────────────────────────────────────────────────────────
+  function showHelp() {
+    helpOverlay.classList.add('active');
+  }
+  
+  function closeHelp() {
+    helpOverlay.classList.remove('active');
+  }
+  
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Spinner Functions
+  // ─────────────────────────────────────────────────────────────────────────────
+  function showSpinner(message = "Processing...") {
+    document.getElementById("spinnerText").textContent = message;
+    document.getElementById("spinnerOverlay").classList.add("active");
+  }
+
+  function hideSpinner() {
+    document.getElementById("spinnerOverlay").classList.remove("active");
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Initialization
+  // ─────────────────────────────────────────────────────────────────────────────
+  function initialize() {
+    loadThemePreference();
+    populateRecipeSelect();
+    populateRecipeGrid();
+    displayCustomRecipes();
+    setupEventListeners();
+  }
+
+  // Populate the recipe dropdown (keep for compatibility)
+  function populateRecipeSelect() {
+    recipes.forEach((recipe, index) => {
+      const option = document.createElement("option");
+      option.value = index;
+      option.textContent = recipe
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (l) => l.toUpperCase());
+      recipeSelect.appendChild(option);
+    });
+  }
+  
+  // Populate the recipe grid (new UI)
+  function populateRecipeGrid() {
+    recipeGrid.innerHTML = "";
+    
+    recipes.forEach((recipe, index) => {
+      const category = recipeCategories[recipe] || "all";
+      const recipeItem = document.createElement("div");
+      recipeItem.className = "recipe-item";
+      recipeItem.dataset.category = category;
+      recipeItem.dataset.recipeIndex = index;
+      
+      const colorPreview = document.createElement("div");
+      colorPreview.className = "recipe-color";
+      colorPreview.style.backgroundColor = recipeColors[recipe] || "#888";
+      
+      const name = document.createElement("div");
+      name.className = "recipe-name";
+      name.textContent = recipe
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (l) => l.toUpperCase());
+      
+      recipeItem.appendChild(colorPreview);
+      recipeItem.appendChild(name);
+      
+      recipeItem.addEventListener("click", function() {
+        applyPresetRecipe(index, recipe);
+      });
+      
+      recipeGrid.appendChild(recipeItem);
+    });
+    
+    // Initialize category filter
+    initCategoryFilter();
+  }
+
+  function initCategoryFilter() {
+    const categoryButtons = document.querySelectorAll(".category-btn");
+    categoryButtons.forEach(btn => {
+      btn.addEventListener("click", function() {
+        // Update active state
+        categoryButtons.forEach(b => b.classList.remove("active"));
+        this.classList.add("active");
+        
+        // Filter recipes
+        const category = this.dataset.category;
+        const recipeItems = document.querySelectorAll(".recipe-item");
+        
+        recipeItems.forEach(item => {
+          if (category === "all" || item.dataset.category === category) {
+            item.style.display = "";
+          } else {
+            item.style.display = "none";
+          }
+        });
+      });
+    });
+  }
+  
+  // Modified function to apply a recipe with spinner
+  function applyPresetRecipe(recipeIndex, recipeName) {
+    if (!recipeCharacteristic) {
+      showToast("Not connected to PicoLight");
+      return;
+    }
+    
+    showSpinner(`Applying ${recipeName.replace(/_/g, " ")}...`);
+    disableUIControls();
+    
+    // Update UI to show which recipe is active
+    document.querySelectorAll(".recipe-item").forEach(item => {
+      item.classList.remove("active");
+      if (parseInt(item.dataset.recipeIndex) === recipeIndex) {
+        item.classList.add("active");
+      }
+    });
+    
+    recipeCharacteristic
+      .writeValue(new Uint8Array([recipeIndex]))
+      .then(() => {
+        recipeSelect.value = recipeIndex; // Keep dropdown in sync
+        setTimeout(() => {
+          hideSpinner();
+          enableUIControls();
+          showToast(`Applied recipe: ${recipeName.replace(/_/g, " ")}`);
+        }, 500);
+      })
+      .catch((error) => {
+        console.error("Error writing recipe:", error);
+        hideSpinner();
+        enableUIControls();
+        showToast("Failed to set recipe");
+      });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // UI Event Listeners
+  // ─────────────────────────────────────────────────────────────────────────────
+  function setupEventListeners() {
+    // Connect button
+    connectButton.addEventListener("click", attemptConnect);
+
+    // Recipe dropdown (keep for compatibility)
+    recipeSelect.addEventListener("change", setSelectedRecipe);
+
+    // Color sliders with throttling for better performance
+    const throttledUpdateColorPreview = throttle(updateColorPreview, 50);
+    [redSlider, greenSlider, blueSlider, whiteSlider].forEach((slider) => {
+      slider.addEventListener("input", throttledUpdateColorPreview);
+    });
+
+    // Apply custom color button
+    applyCustomColor.addEventListener("click", applyCustomColorHandler);
+
+    // Save recipe button
+    saveRecipeBtn.addEventListener("click", saveCustomRecipe);
+
+    // Clear recipes button
+    clearRecipesBtn.addEventListener("click", clearCustomRecipes);
+
+    // Lights On / Off
+    lightsOnBtn.addEventListener("click", sendLightsOn);
+    lightsOffBtn.addEventListener("click", sendLightsOff);
+    
+    // Theme toggle button
+    themeToggle.addEventListener("click", toggleTheme);
+    
+    // Help dialog
+    showHelpBtn.addEventListener("click", function(e) {
+      e.preventDefault();
+      showHelp();
+    });
+    
+    closeHelpBtn.addEventListener("click", closeHelp);
+    helpOverlay.addEventListener("click", function(e) {
+      if (e.target === helpOverlay) {
+        closeHelp();
+      }
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Bluetooth Connection Handling with Retry
+  // ─────────────────────────────────────────────────────────────────────────────
+  function attemptConnect() {
+    if (bleDevice && bleDevice.gatt.connected) {
+      // Disconnect
+      bleDevice.gatt.disconnect();
+      return;
+    }
+    
+    // Reset connection attempts if this is a new connection session
+    if (connectionAttempts === 0 || connectionAttempts >= MAX_RETRY_ATTEMPTS) {
+      connectionAttempts = 0;
+    }
+    
+    connectionAttempts++;
+    showSpinner(`Connecting to PicoLight${connectionAttempts > 1 ? ` (attempt ${connectionAttempts}/${MAX_RETRY_ATTEMPTS})` : ''}...`);
+    connectButton.disabled = true;
+    connectionStatus.textContent = "Connecting...";
+
+    // Request device with the specific name and service UUID
+    navigator.bluetooth.requestDevice({
+      filters: [{ name: "PicoLight" }],
+      optionalServices: [serviceUUID],
+    })
+    .then(device => {
+      bleDevice = device;
+      return bleDevice.gatt.connect();
+    })
+    .then(server => {
+      bleServer = server;
+      return server.getPrimaryService(serviceUUID);
+    })
+    .then(service => {
+      return Promise.all([
+        service.getCharacteristic(recipeCharUUID),
+        service.getCharacteristic(customCharUUID),
+        service.getCharacteristic(controlCharUUID)
+      ]);
+    })
+    .then(characteristics => {
+      recipeCharacteristic = characteristics[0];
+      customCharacteristic = characteristics[1];
+      controlCharacteristic = characteristics[2];
+
+      // Reset connection attempts on successful connection
+      connectionAttempts = 0;
+      
+      // Update UI for connected state
+      connectionStatus.textContent = "Connected";
+      connectionStatus.className = "status-badge status-connected";
+      connectButton.innerHTML = '<i class="fas fa-bluetooth"></i> Disconnect';
+      connectButton.disabled = false;
+
+      // Enable UI controls
+      enableUIControls();
+
+      // Listen for disconnection
+      bleDevice.addEventListener("gattserverdisconnected", onDisconnected);
+
+      hideSpinner();
+      showToast("Connected to PicoLight");
+    })
+    .catch(error => {
+      console.error("Connection error:", error);
+      
+      if (connectionAttempts < MAX_RETRY_ATTEMPTS) {
+        // Retry connection after a delay
+        hideSpinner();
+        showToast(`Connection failed. Retrying (${connectionAttempts}/${MAX_RETRY_ATTEMPTS})...`);
+        setTimeout(attemptConnect, 1500);
+      } else {
+        // Reset after max attempts
+        connectionAttempts = 0;
+        hideSpinner();
+        showToast("Connection failed after multiple attempts.");
+        onDisconnected();
+      }
+    });
+  }
+
+  function onDisconnected() {
+    bleDevice = null;
+    bleServer = null;
+    recipeCharacteristic = null;
+    customCharacteristic = null;
+    controlCharacteristic = null;
+
+    connectionStatus.textContent = "Disconnected";
+    connectionStatus.className = "status-badge status-disconnected";
+    connectButton.innerHTML = '<i class="fas fa-bluetooth"></i> Connect';
+
+    // Reset active recipe indicators
+    document.querySelectorAll(".recipe-item").forEach(item => {
+      item.classList.remove("active");
+    });
+
+    // Disable everything except specific buttons
+    document.querySelectorAll("button").forEach((btn) => (btn.disabled = true));
+    connectButton.disabled = false;
+    themeToggle.disabled = false;
+    showHelpBtn.disabled = false;
+    
+    recipeSelect.disabled = true;
+    recipeSelect.selectedIndex = 0;
+    redSlider.disabled = true;
+    greenSlider.disabled = true;
+    blueSlider.disabled = true;
+    whiteSlider.disabled = true;
+    applyCustomColor.disabled = true;
+    saveRecipeBtn.disabled = true;
+
+    // Reset color sliders
+    redSlider.value = 0;
+    greenSlider.value = 0;
+    blueSlider.value = 0;
+    whiteSlider.value = 0;
+    updateColorPreview();
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Recipes & Color
+  // ─────────────────────────────────────────────────────────────────────────────
+  function setSelectedRecipe() {
+    if (!recipeCharacteristic) return;
+    
+    const recipeIndex = parseInt(recipeSelect.value);
+    if (isNaN(recipeIndex)) return;
+
+    showSpinner(`Applying recipe...`);
+    disableUIControls();
+
+    recipeCharacteristic
+      .writeValue(new Uint8Array([recipeIndex]))
+      .then(() => {
+        // Update recipe grid UI to match selected dropdown
+        document.querySelectorAll(".recipe-item").forEach(item => {
+          item.classList.remove("active");
+          if (parseInt(item.dataset.recipeIndex) === recipeIndex) {
+            item.classList.add("active");
+          }
+        });
+        
+        setTimeout(() => {
+          hideSpinner();
+          enableUIControls();
+          showToast(`Applied recipe: ${recipes[recipeIndex].replace(/_/g, " ")}`);
+        }, 500);
+      })
+      .catch((error) => {
+        console.error("Error writing recipe:", error);
+        hideSpinner();
+        enableUIControls();
+        showToast("Failed to set recipe");
+      });
+  }
+
+  function updateColorPreview() {
+    const r = parseInt(redSlider.value);
+    const g = parseInt(greenSlider.value);
+    const b = parseInt(blueSlider.value);
+    const w = parseInt(whiteSlider.value);
+
+    // Simulate the white LED by adding white to all channels
+    const displayR = Math.min(255, r + w / 2);
+    const displayG = Math.min(255, g + w / 2);
+    const displayB = Math.min(255, b + w / 2);
+
+    colorPreview.style.backgroundColor = `rgb(${displayR}, ${displayG}, ${displayB})`;
+
+    // Update value displays
+    redValue.textContent = r;
+    greenValue.textContent = g;
+    blueValue.textContent = b;
+    whiteValue.textContent = w;
+    
+    // Clear active state from recipe items when user is modifying custom color
+    document.querySelectorAll(".recipe-item").forEach(item => {
+      item.classList.remove("active");
+    });
+  }
+
+  function applyCustomColorHandler() {
+    if (!customCharacteristic) {
+      showToast("Not connected to PicoLight");
+      return;
+    }
+
+    const r = parseInt(redSlider.value);
+    const g = parseInt(greenSlider.value);
+    const b = parseInt(blueSlider.value);
+    const w = parseInt(whiteSlider.value);
+
+    showSpinner("Applying custom color...");
+    disableUIControls();
+
+    customCharacteristic
+      .writeValue(new Uint8Array([r, g, b, w]))
+      .then(() => {
+        setTimeout(() => {
+          hideSpinner();
+          enableUIControls();
+          showToast("Custom color applied");
+        }, 500);
+      })
+      .catch((error) => {
+        console.error("Error setting custom color:", error);
+        hideSpinner();
+        enableUIControls();
+        showToast("Failed to set custom color");
+      });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Lights ON/OFF Commands
+  // ─────────────────────────────────────────────────────────────────────────────
+  function sendLightsOn() {
+    if (!controlCharacteristic) {
+      showToast("Not connected to PicoLight");
+      return;
+    }
+    
+    showSpinner("Turning lights on...");
+    disableUIControls();
+    
+    // Command 1 means "Lights ON"
+    controlCharacteristic.writeValue(new Uint8Array([1]))
+      .then(() => {
+        // Update UI to show appropriate recipe as active (likely 'balanced')
+        document.querySelectorAll(".recipe-item").forEach(item => {
+          const itemRecipe = recipes[parseInt(item.dataset.recipeIndex)];
+          if (itemRecipe === 'balanced') {
+            item.classList.add("active");
+          } else {
+            item.classList.remove("active");
+          }
+        });
+        
+        setTimeout(() => {
+          hideSpinner();
+          enableUIControls();
+          showToast("Lights turned ON");
+        }, 500);
+      })
+      .catch(err => {
+        console.error("LightsOn error:", err);
+        hideSpinner();
+        enableUIControls();
+        showToast("Failed to turn lights on");
+      });
+  }
+
+  function sendLightsOff() {
+    if (!controlCharacteristic) {
+      showToast("Not connected to PicoLight");
+      return;
+    }
+    
+    showSpinner("Turning lights off...");
+    disableUIControls();
+    
+    // Command 0 means "Lights OFF"
+    controlCharacteristic.writeValue(new Uint8Array([0]))
+      .then(() => {
+        // Update UI to show 'off' recipe as active
+        document.querySelectorAll(".recipe-item").forEach(item => {
+          const itemRecipe = recipes[parseInt(item.dataset.recipeIndex)];
+          if (itemRecipe === 'off') {
+            item.classList.add("active");
+          } else {
+            item.classList.remove("active");
+          }
+        });
+        
+        setTimeout(() => {
+          hideSpinner();
+          enableUIControls();
+          showToast("Lights turned OFF");
+        }, 500);
+      })
+      .catch(err => {
+        console.error("LightsOff error:", err);
+        hideSpinner();
+        enableUIControls();
+        showToast("Failed to turn lights off");
+      });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Custom Recipes
+  // ─────────────────────────────────────────────────────────────────────────────
+  function saveCustomRecipe() {
+    const r = parseInt(redSlider.value);
+    const g = parseInt(greenSlider.value);
+    const b = parseInt(blueSlider.value);
+    const w = parseInt(whiteSlider.value);
+
+    const name = prompt("Enter a name for this recipe:", "");
+    if (!name || name.trim() === "") return;
+
+    const recipe = {
+      name: name.trim(),
+      r,
+      g,
+      b,
+      w,
+      id: Date.now(), // Unique ID
+    };
+
+    customRecipes.push(recipe);
+    saveCustomRecipesToStorage();
+    displayCustomRecipes();
+
+    showToast(`Recipe "${name}" saved`);
+  }
+
+  function clearCustomRecipes() {
+    if (confirm("Are you sure you want to delete all custom recipes?")) {
+      customRecipes = [];
+      saveCustomRecipesToStorage();
+      displayCustomRecipes();
+      showToast("All custom recipes cleared");
+    }
+  }
+
+  function displayCustomRecipes() {
+    customRecipesGrid.innerHTML = "";
+
+    if (customRecipes.length === 0) {
+      const emptyMessage = document.createElement("p");
+      emptyMessage.textContent =
+        "You have no custom recipes yet. Create one by setting a color and saving it.";
+      emptyMessage.style.gridColumn = "1 / -1";
+      emptyMessage.style.textAlign = "center";
+      emptyMessage.style.color = "#666";
+      customRecipesGrid.appendChild(emptyMessage);
+      return;
+    }
+
+    customRecipes.forEach((recipe) => {
+      const recipeCard = document.createElement("div");
+      recipeCard.className = "recipe-card";
+
+      const colorPreview = document.createElement("div");
+      colorPreview.className = "recipe-color";
+
+      // Simulate the white LED
+      const displayR = Math.min(255, recipe.r + recipe.w / 2);
+      const displayG = Math.min(255, recipe.g + recipe.w / 2);
+      const displayB = Math.min(255, recipe.b + recipe.w / 2);
+
+      colorPreview.style.backgroundColor = `rgb(${displayR}, ${displayG}, ${displayB})`;
+
+      const title = document.createElement("div");
+      title.className = "recipe-title";
+      title.textContent = recipe.name;
+
+      const rgbwText = document.createElement("div");
+      rgbwText.style.fontSize = "0.8rem";
+      rgbwText.style.textAlign = "center";
+      rgbwText.textContent = `R:${recipe.r} G:${recipe.g} B:${recipe.b} W:${recipe.w}`;
+
+      const buttonContainer = document.createElement("div");
+      buttonContainer.className = "recipe-buttons";
+
+      const applyButton = document.createElement("button");
+      applyButton.className = "recipe-button";
+      applyButton.innerHTML = '<i class="fas fa-play"></i> Apply';
+      applyButton.addEventListener("click", () => applyCustomRecipe(recipe));
+
+      const deleteButton = document.createElement("button");
+      deleteButton.className = "recipe-button";
+      deleteButton.style.backgroundColor = "var(--danger-color)";
+      deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+      deleteButton.addEventListener("click", () => deleteCustomRecipe(recipe.id));
+
+      buttonContainer.appendChild(applyButton);
+      buttonContainer.appendChild(deleteButton);
+
+      recipeCard.appendChild(colorPreview);
+      recipeCard.appendChild(title);
+      recipeCard.appendChild(rgbwText);
+      recipeCard.appendChild(buttonContainer);
+
+      customRecipesGrid.appendChild(recipeCard);
+    });
+  }
+
+  function applyCustomRecipe(recipe) {
+    if (!customCharacteristic) {
+      showToast("Not connected to PicoLight");
+      return;
+    }
+    
+    showSpinner(`Applying ${recipe.name}...`);
+    disableUIControls();
+
+    redSlider.value = recipe.r;
+    greenSlider.value = recipe.g;
+    blueSlider.value = recipe.b;
+    whiteSlider.value = recipe.w;
+    updateColorPreview();
+
+    // Clear active state from preset recipe items
+    document.querySelectorAll(".recipe-item").forEach(item => {
+      item.classList.remove("active");
+    });
+
+    customCharacteristic
+      .writeValue(new Uint8Array([recipe.r, recipe.g, recipe.b, recipe.w]))
+      .then(() => {
+        setTimeout(() => {
+          hideSpinner();
+          enableUIControls();
+          showToast(`Applied custom recipe: ${recipe.name}`);
+        }, 500);
+      })
+      .catch((error) => {
+        console.error("Error applying custom recipe:", error);
+        hideSpinner();
+        enableUIControls();
+        showToast("Failed to apply custom recipe");
+      });
+  }
+
+  function deleteCustomRecipe(id) {
+    customRecipes = customRecipes.filter((r) => r.id !== id);
+    saveCustomRecipesToStorage();
+    displayCustomRecipes();
+    showToast("Recipe deleted");
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Toast Notifications
+  // ─────────────────────────────────────────────────────────────────────────────
+  function showToast(message) {
+    toastElement.textContent = message;
+    toastElement.className = "toast show";
+
+    setTimeout(() => {
+      toastElement.className = "toast";
+    }, 3000);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Local Storage for Custom Recipes
+  // ─────────────────────────────────────────────────────────────────────────────
+  function loadCustomRecipes() {
+    const saved = localStorage.getItem("picoLightCustomRecipes");
+    return saved ? JSON.parse(saved) : [];
+  }
+
+  function saveCustomRecipesToStorage() {
+    localStorage.setItem("picoLightCustomRecipes", JSON.stringify(customRecipes));
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // On Page Load
+  // ─────────────────────────────────────────────────────────────────────────────
+  document.addEventListener("DOMContentLoaded", initialize);
+
+  // Check if Web Bluetooth API is available
+  if (!navigator.bluetooth) {
+    connectButton.disabled = true;
+    connectButton.textContent = "Bluetooth Not Available";
+    showToast(
+      "Web Bluetooth API is not available in this browser. Please try Chrome or Edge."
+    );
+  }
+</script>
+</body>
+</html>
