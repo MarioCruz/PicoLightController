@@ -71,9 +71,9 @@ PicoLight Controller allows you to wirelessly control RGBW LED strips connected 
 
 ## Software Setup (Web App)
 
-1.  **Get the HTML File**: Use the `BLEwithMemandReconect.html` file.
+1.  **Get the HTML File**: Use the `LocalConnectingCode.html` file.
 2.  **Access the File**:
-    *   **Option A (Simple):** Open the `.html` file directly in a compatible web browser (`file:///path/to/your/file.html`).
+    *   **Option A (Simple):** Open the `.html` file directly in a compatible web browser (`file:///path/to/your/LocalConnectingCode.html`).
     *   **Option B (Better):** Serve the file using a simple local web server (e.g., Python's `http.server`, Node.js `live-server`, VS Code Live Server extension) and access it via `http://localhost:PORT`. This often works better with Web Bluetooth permissions.
 3.  **Ensure `knownServiceUUIDs` is Correct**: In the `<script>` section of the HTML file, make sure the `knownServiceUUIDs` array includes *all* the unique `BLE_SERVICE_UUID` values used by your Pico devices.
 
