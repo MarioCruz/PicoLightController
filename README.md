@@ -1,12 +1,12 @@
 # PicoLight Controller v3.5
 
 **A responsive web-based Bluetooth LE controller for RGBW (NeoPixel) LED lights powered by a Raspberry Pi Pico W.**
+<img width="369" alt="Screenshot 2025-03-31 at 2 51 42 PM" src="https://github.com/user-attachments/assets/f594eaf6-6217-474b-9209-eb5b57f22d8b" />
 
 ## Overview
 
 PicoLight Controller allows you to wirelessly control RGBW LED strips connected to a Raspberry Pi Pico W microcontroller using any modern web browser that supports the Web Bluetooth API. Set presets, create custom colors, save local recipes, configure automatic schedules, manage multiple devices, and more.
 
-[![Screenshot Placeholder - Add an image of your web interface here!]()]()
 
 ## Features
 
