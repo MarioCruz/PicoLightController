@@ -129,7 +129,7 @@ PicoLight Controller allows you to wirelessly control RGBW LED strips connected 
 
 ## License
 
-[Link to your chosen license, e.g., MIT License](LICENSE.md) <!-- Add a LICENSE.md file or link to an online one -->
+[Link to your chosen license, e.g., MIT License](<!-- Add a LICENSE.md file or link to an online one -->
 
 ## Acknowledgments
 
