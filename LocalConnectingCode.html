@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>PicoLight Controller v3.5</title> <!-- Version bump -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
+    <style>
+      :root {
+        --primary-color: #4c6ef5;
+        --secondary-color: #3b5bdb;
+        --success-color: #40c057;
+        --danger-color: #fa5252;
+        --light-bg: #f8f9fa;
+        --dark-bg: #343a40;
+        --text-color: #212529;
+        --border-radius: 8px;
+        --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        --card-bg: white;
+        --border-color: #eee;
+      }
+
+      /* Dark theme variables */
+      html[data-theme='dark'] {
+        --primary-color: #748ffc;
+        --secondary-color: #5c7cfa;
+        --light-bg: #222;
+        --dark-bg: #111;
+        --text-color: #e9ecef;
+        --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        --card-bg: #333;
+        --border-color: #444;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: var(--light-bg);
+        color: var(--text-color);
+        line-height: 1.6;
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      /* Updated header with flex layout */
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+
+      .header-left {
+        text-align: left;
+      }
+
+      .header-right {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      /* Theme toggle button */
+      .theme-toggle {
+        background: none; border: none; color: var(--text-color);
+        font-size: 1.2rem; cursor: pointer; padding: 8px;
+        border-radius: 50%; display: flex; align-items: center;
+        justify-content: center; transition: background-color 0.3s;
+      }
+      .theme-toggle:hover { background-color: rgba(0, 0, 0, 0.1); }
+      html[data-theme='dark'] .theme-toggle:hover { background-color: rgba(255, 255, 255, 0.1); }
+
+      /* Connection widget */
+      .connection-widget {
+        background-color: var(--card-bg); border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow); padding: 12px; min-width: 180px;
+        display: flex; flex-direction: column; gap: 10px;
+        transition: background-color 0.3s, box-shadow 0.3s;
+      }
+      .connection-header { display: flex; justify-content: space-between; align-items: center; }
+      .connection-title { font-size: 1rem; font-weight: 600; color: var(--primary-color); margin: 0; }
+
+      h1 { color: var(--primary-color); margin-bottom: 10px; }
+      .dashboard { display: grid; grid-template-columns: 1fr; gap: 20px; }
+      @media (min-width: 768px) { .dashboard { grid-template-columns: 1fr; } }
+
+      .card {
+        background-color: var(--card-bg); border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow); padding: 20px;
+        transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
+      }
+      .card:hover { transform: translateY(-5px); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); }
+      .card-header { border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+      .card-title { font-size: 1.3rem; font-weight: 600; color: var(--primary-color); margin: 0; }
+
+      .status-badge { padding: 6px 12px; border-radius: 30px; font-size: 0.85rem; font-weight: 500; }
+      .status-connected { background-color: var(--success-color); color: white; }
+      .status-disconnected { background-color: #dee2e6; color: var(--text-color); }
+
+      button {
+        background-color: var(--primary-color); color: white; border: none;
+        padding: 12px 20px; border-radius: var(--border-radius); cursor: pointer;
+        font-weight: 600; transition: background-color 0.2s; display: flex;
+        align-items: center; justify-content: center; gap: 8px;
+      }
+      button:hover { background-color: var(--secondary-color); }
+      button:disabled { background-color: #adb5bd; cursor: not-allowed; }
+      .button-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+      .button-full { width: 100%; }
+
+      select {
+        width: 100%; padding: 12px; border: 1px solid #ddd;
+        border-radius: var(--border-radius); background-color: var(--card-bg);
+        color: var(--text-color); margin-bottom: 15px; font-size: 1rem;
+      }
+
+      /* Color Controls & Sliders */
+      .color-controls { margin-top: 20px; }
+      .slider-group { margin-bottom: 15px; }
+      .slider-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+      .slider-label span:first-child { font-weight: 600; }
+      input[type="range"] { width: 100%; -webkit-appearance: none; height: 10px; border-radius: 5px; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--primary-color); cursor: pointer; }
+      input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--primary-color); cursor: pointer; }
+      #redSlider::-webkit-slider-runnable-track { background: linear-gradient(to right, #000, #f00); } #greenSlider::-webkit-slider-runnable-track { background: linear-gradient(to right, #000, #0f0); } #blueSlider::-webkit-slider-runnable-track { background: linear-gradient(to right, #000, #00f); } #whiteSlider::-webkit-slider-runnable-track { background: linear-gradient(to right, #000, #fff); }
+      #redSlider::-moz-range-track { background: linear-gradient(to right, #000, #f00); } #greenSlider::-moz-range-track { background: linear-gradient(to right, #000, #0f0); } #blueSlider::-moz-range-track { background: linear-gradient(to right, #000, #00f); } #whiteSlider::-moz-range-track { background: linear-gradient(to right, #000, #fff); }
+      .color-preview { width: 100%; height: 40px; border-radius: var(--border-radius); margin-bottom: 15px; box-shadow: inset 0 0 5px rgba(0,0,0,0.2); border: 1px solid #ddd; }
+
+      /* Custom Recipes Grid */
+      .recipes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+      .recipe-card { background-color: var(--card-bg); border-radius: var(--border-radius); padding: 15px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; transition: transform 0.2s, background-color 0.3s; }
+      .recipe-card:hover { transform: translateY(-3px); }
+      .recipe-title { font-weight: 600; text-align: center; margin: 5px 0; }
+      .recipe-buttons { display: flex; justify-content: center; margin-top: 8px; gap: 5px; }
+      .recipe-button { padding: 5px 10px; font-size: 0.75rem; border-radius: 4px; }
+      .save-btn { background-color: var(--success-color); }
+      .custom-recipes-title { display: flex; justify-content: space-between; align-items: center; margin-top: 25px; margin-bottom: 10px; }
+
+      /* Preset Recipes Grid */
+      .recipe-categories { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+      .category-btn { background-color: #e9ecef; color: var(--text-color); padding: 8px 12px; border-radius: 20px; font-size: 0.9rem; border: none; cursor: pointer; transition: all 0.2s; }
+      .category-btn.active { background-color: var(--primary-color); color: white; }
+      html[data-theme='dark'] .category-btn { background-color: #444; }
+      .recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+      .recipe-item { background-color: #f8f9fa; border-radius: var(--border-radius); padding: 12px; cursor: pointer; transition: all 0.2s; text-align: center; border: 2px solid transparent; }
+      html[data-theme='dark'] .recipe-item { background-color: #444; }
+      .recipe-item:hover { transform: translateY(-3px); background-color: #e9ecef; }
+      html[data-theme='dark'] .recipe-item:hover { background-color: #555; }
+      .recipe-item.active { border-color: var(--primary-color); background-color: rgba(76, 110, 245, 0.1); }
+      html[data-theme='dark'] .recipe-item.active { background-color: rgba(76, 110, 245, 0.2); }
+      .recipe-color { width: 40px; height: 40px; border-radius: 50%; margin: 0 auto 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+      .recipe-name { font-size: 0.85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+      /* Toast, Spinner, Footer, Help Dialog */
+      .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); background: #333; color: white; padding: 15px 20px; border-radius: var(--border-radius); opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease; z-index: 1000; text-align: center; min-width: 200px; max-width: 80%; }
+      .toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      .spinner-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); z-index: 1500; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0s 0.3s; }
+      .spinner-overlay.active { opacity: 1; visibility: visible; transition: opacity 0.3s; }
+      .spinner { width: 60px; height: 60px; border: 6px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: var(--primary-color); animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }
+      .spinner-text { color: white; margin-top: 15px; font-weight: 500; }
+      footer { margin-top: 40px; text-align: center; color: #666; font-size: 0.8rem; padding: 20px 0; border-top: 1px solid var(--border-color); } footer a { color: var(--primary-color); text-decoration: none; } footer a:hover { text-decoration: underline; }
+      .help-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.7); z-index: 2000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0s 0.3s; } .help-overlay.active { opacity: 1; visibility: visible; transition: opacity 0.3s; }
+      .help-dialog { background-color: var(--card-bg); border-radius: var(--border-radius); box-shadow: var(--card-shadow); padding: 20px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; } .help-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; } .help-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-color); padding: 0; }
+
+      /* Device Selection Dialog */
+      .device-selection-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.7); z-index: 2000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0s 0.3s; } .device-selection-overlay.active { opacity: 1; visibility: visible; transition: opacity 0.3s; }
+      .device-selection-dialog { background-color: var(--card-bg); border-radius: var(--border-radius); box-shadow: var(--card-shadow); padding: 20px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; } .device-selection-header { margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; } .device-selection-footer { display: flex; justify-content: space-between; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px; } .device-list { margin: 15px 0; }
+      .device-item { display: flex; align-items: center; padding: 12px; border-radius: var(--border-radius); margin-bottom: 8px; background-color: var(--light-bg); cursor: pointer; transition: background-color 0.2s; } .device-item:hover { background-color: rgba(76, 110, 245, 0.1); } html[data-theme='dark'] .device-item { background-color: #333; } html[data-theme='dark'] .device-item:hover { background-color: #444; }
+      .device-icon { margin-right: 12px; font-size: 1.5rem; color: var(--primary-color); } .device-info { flex: 1; } .device-name { font-weight: 600; margin-bottom: 3px; } .device-id { font-size: 0.8rem; color: #666; } html[data-theme='dark'] .device-id { color: #aaa; } .scan-again-btn, .cancel-scan-btn { padding: 8px 16px; } .scan-again-btn { background-color: var(--primary-color); } .cancel-scan-btn { background-color: #6c757d; }
+      .last-device-badge { background-color: var(--primary-color); color: white; border-radius: 10px; padding: 2px 6px; font-size: 0.7rem; margin-left: 5px; }
+      .last-connected { font-size: 0.75rem; color: #666; margin-top: 3px; }
+      html[data-theme='dark'] .last-connected { color: #aaa; }
+
+      /* Auto-Reconnect Button */
+      .auto-connect-btn { margin-top: 6px; background-color: #6c757d; font-size: 0.85rem; padding: 8px; }
+      .auto-connect-btn.active { background-color: var(--success-color); }
+
+      /* Connected Device Info in Widget */
+      .connected-device-info { display: flex; align-items: center; justify-content: space-between; gap: 5px; margin-bottom: 6px; min-height: 20px; }
+      .connected-device-name-display { font-size: 0.85rem; color: var(--primary-color); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; flex-grow: 1; }
+      .rename-widget-btn { padding: 4px 6px; background: none; border: none; color: var(--primary-color); cursor: pointer; font-size: 0.9rem; line-height: 1; border-radius: 4px; flex-shrink: 0; }
+      .rename-widget-btn:hover { background-color: rgba(0, 0, 0, 0.08); } html[data-theme='dark'] .rename-widget-btn:hover { background-color: rgba(255, 255, 255, 0.1); }
+      .rename-widget-btn:disabled { color: #adb5bd; cursor: not-allowed; background-color: transparent; }
+
+      /* Schedule Card Styles */
+      .schedule-setting-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+      .schedule-setting-item label { font-weight: 600; min-width: 120px; text-align: right; flex-shrink: 0; }
+      .schedule-setting-item input[type="number"],
+      .schedule-setting-item select { padding: 8px; border: 1px solid var(--border-color); border-radius: var(--border-radius); background-color: var(--card-bg); color: var(--text-color); font-size: 1rem; }
+      .schedule-setting-item input[type="number"] { width: 70px; text-align: center; }
+      .schedule-setting-item select { flex-grow: 1; max-width: 250px; min-width: 150px; }
+      input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; } input[type=number] { -moz-appearance: textfield; }
+      .schedule-info { font-size: 0.9em; color: #666; margin-top: 10px; } html[data-theme='dark'] .schedule-info { color: #aaa; }
+
+      /* Responsive adjustments */
+      @media (max-width: 560px) {
+        header { flex-direction: column; align-items: center; }
+        .header-left { text-align: center; }
+        .header-right { width: 100%; justify-content: center; }
+        .connection-widget { width: 100%; max-width: 300px; }
+        .button-group { justify-content: center; }
+        .schedule-setting-item { justify-content: center; }
+        .schedule-setting-item label { text-align: left; min-width: auto; margin-bottom: 5px; width: 100%; }
+      }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div class="header-left">
+            <h1><i class="fas fa-lightbulb"></i> PicoLight Controller v3.5</h1> <!-- Version bump -->
+            <p>Control your RGBW LED light settings wirelessly over Bluetooth</p>
+        </div>
+         <div class="header-right">
+            <button id="themeToggle" class="theme-toggle" title="Toggle dark/light mode"><i class="fas fa-moon"></i></button>
+            <div class="connection-widget">
+                <div class="connection-header">
+                    <h3 class="connection-title">Connection</h3>
+                    <span id="connectionStatus" class="status-badge status-disconnected">Disconnected</span>
+                </div>
+                <div id="connectedDeviceInfo" class="connected-device-info" style="display: none;">
+                    <div id="connectedDeviceName" class="connected-device-name-display"></div>
+                    <button id="renameConnectedDeviceBtn" class="rename-widget-btn" title="Rename Connected Device" disabled>
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+                <button id="connectButton" class="button-full"><i class="fas fa-bluetooth"></i> Connect</button>
+                <button id="autoConnectBtn" class="button-full auto-connect-btn"><i class="fas fa-unlink"></i> Auto-Reconnect: OFF</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Light Recipes Card -->
+    <div class="card">
+         <div class="card-header"><h2 class="card-title">Light Recipes</h2></div>
+         <div class="recipe-categories"> <button class="category-btn active" data-category="all">All</button> <button class="category-btn" data-category="basic">Basic</button> <button class="category-btn" data-category="plant">Plants</button> <button class="category-btn" data-category="mood">Mood</button> </div>
+         <div class="recipe-grid" id="recipeGrid"></div>
+         <select id="recipeSelect" disabled style="display: none;"><option value="" disabled selected>Select recipe</option></select>
+    </div>
+
+    <!-- On/Off Controls Card -->
+    <div class="card" style="margin-top: 20px;">
+        <div class="card-header"><h2 class="card-title">On/Off Controls</h2></div>
+        <div style="display:flex; gap:10px; flex-wrap: wrap;"> <button id="lightsOnBtn" style="flex:1;" disabled><i class="fas fa-lightbulb"></i> Lights On</button> <button id="lightsOffBtn" style="flex:1;" disabled><i class="fas fa-power-off"></i> Lights Off</button> </div>
+    </div>
+
+    <!-- Schedule Settings Card -->
+    <div class="card" style="margin-top: 20px;">
+        <div class="card-header">
+            <h2 class="card-title">Auto-Cycle Settings</h2>
+        </div>
+        <p class="schedule-info">Configure the automatic daily schedule (only active if Auto-Cycle is enabled on the Pico).</p>
+        <div class="schedule-setting-item">
+            <label for="onHoursInput">ON Duration:</label>
+            <div><input type="number" id="onHoursInput" min="0" max="24" value="12" disabled /> hours</div>
+        </div>
+        <div class="schedule-setting-item">
+            <label for="offHoursInput">OFF Duration:</label>
+            <div><input type="number" id="offHoursInput" min="0" max="24" value="12" disabled /> hours</div>
+        </div>
+         <div class="schedule-setting-item">
+             <label for="activeRecipeSelect">ON Recipe:</label>
+             <select id="activeRecipeSelect" disabled>
+                 <option value="" disabled selected>Loading...</option>
+             </select>
+         </div>
+         <p class="schedule-info" style="font-size: 0.8em; margin-left: 130px;">(Recipe used when auto-cycle turns lights ON)</p>
+        <div class="button-group" style="margin-top: 20px;">
+           <button id="applyScheduleBtn" disabled> <i class="fas fa-save"></i> Save Durations </button>
+            <button id="setActiveRecipeBtn" disabled> <i class="fas fa-star"></i> Set Auto Recipe </button>
+            <button id="requestSettingsBtn" disabled> <i class="fas fa-sync-alt"></i> Refresh Settings </button>
+        </div>
+        <p id="scheduleStatus" class="schedule-info" style="margin-top: 15px;">Connect to device to manage settings.</p>
+    </div>
+
+    <!-- Custom Color Card -->
+    <div class="card" style="margin-top: 20px;">
+        <div class="card-header"><h2 class="card-title">Custom Color</h2></div>
+        <div class="color-preview" id="colorPreview"></div>
+        <div class="color-controls"> <div class="slider-group"> <div class="slider-label"><span>Red</span><span id="redValue">0</span></div> <input type="range" id="redSlider" min="0" max="255" value="0" disabled /> </div> <div class="slider-group"> <div class="slider-label"><span>Green</span><span id="greenValue">0</span></div> <input type="range" id="greenSlider" min="0" max="255" value="0" disabled /> </div> <div class="slider-group"> <div class="slider-label"><span>Blue</span><span id="blueValue">0</span></div> <input type="range" id="blueSlider" min="0" max="255" value="0" disabled /> </div> <div class="slider-group"> <div class="slider-label"><span>White</span><span id="whiteValue">0</span></div> <input type="range" id="whiteSlider" min="0" max="255" value="0" disabled /> </div> </div>
+        <div class="button-group"> <button id="applyCustomColor" disabled><i class="fas fa-paint-brush"></i> Apply Color</button> <button id="saveRecipeBtn" disabled><i class="fas fa-save"></i> Save as Recipe</button> </div>
+    </div>
+
+    <!-- Custom Recipes Grid -->
+    <div class="custom-recipes-title">
+         <h2>My Custom Recipes</h2> <button id="clearRecipesBtn" style="padding: 5px 10px; background-color: var(--danger-color);" disabled><i class="fas fa-trash"></i> Clear All</button>
+    </div>
+    <div class="recipes-grid" id="customRecipesGrid">
+        <p style="grid-column: 1 / -1; text-align: center; color: #666;">You have no saved custom recipes yet.</p>
+    </div>
+
+    <!-- Device Selection Dialog -->
+    <div class="device-selection-overlay" id="deviceSelectionOverlay">
+        <div class="device-selection-dialog">
+            <div class="device-selection-header"><h2>Select a PicoLight Device</h2></div>
+            <div class="device-selection-content"><p>Scanning for available PicoLight devices...</p><div id="deviceList" class="device-list"></div> </div>
+            <div class="device-selection-footer"> <button id="scanAgainBtn" class="scan-again-btn"><i class="fas fa-sync-alt"></i> Scan Again</button> <button id="cancelScanBtn" class="cancel-scan-btn">Cancel</button> </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>PicoLight Controller v3.5 | <a href="#" id="showHelp">Help</a> | <a href="https://github.com/mariocruz/picolight" target="_blank">GitHub</a></p>
+    </footer>
+</div>
+
+<!-- Toast, Spinner, Help Dialog -->
+<div class="toast" id="toast"></div>
+<div class="spinner-overlay" id="spinnerOverlay"><div><div class="spinner"></div><div class="spinner-text" id="spinnerText">Processing...</div></div></div>
+<div class="help-overlay" id="helpOverlay">
+    <div class="help-dialog">
+    <div class="help-header"><h2>PicoLight Controller Help</h2><button class="help-close" id="closeHelp">&times;</button></div>
+    <div class="help-content">
+        <h3>Getting Started</h3> <p>Connect using the Connect button. Requires a Web Bluetooth compatible browser (Chrome, Edge).</p>
+        <h3>Renaming Your Device</h3> <p>Once connected, click the <i class="fas fa-edit"></i> icon next to the device name in the top-right connection widget to give it a custom name (saved in your browser).</p>
+        <h3>Auto-Reconnect</h3> <p>Toggle the Auto-Reconnect button. If enabled, you will be prompted to connect to the last device on page load (requires user click).</p>
+        <h3>Light Recipes</h3> <p>Click recipe icons (Basic, Plants, Mood) to apply predefined settings.</p>
+        <h3>On/Off Controls</h3> <p>Quickly turn lights ON (usually to 'balanced') or OFF.</p>
+        <h3>Auto-Cycle Settings</h3> <p>Configure the automatic daily light schedule (only runs if Auto-Cycle is enabled on the Pico itself).</p> <ul> <li><b>ON/OFF Duration:</b> Set how many hours the light stays ON and OFF (0-24). Click "Save Durations" to apply.</li> <li><b>ON Recipe:</b> Select which *predefined* recipe is used when auto-cycle turns lights ON. Click "Set Auto Recipe" to apply.</li> <li><b>Refresh Settings:</b> Click to request current durations and ON recipe from the Pico.</li> </ul> <p>Settings are saved persistently on the Pico.</p>
+        <h3>Custom Colors</h3> <p>Use sliders to create colors, then click "Apply Color".</p>
+        <h3>Saving Custom Recipes</h3> <p>Click "Save as Recipe" after setting a custom color to store it locally in your browser.</p>
+        <h3>Troubleshooting</h3> <ul> <li>Check Pico power & range.</li> <li>Ensure Bluetooth is ON (OS & Browser).</li> <li>Check Browser/OS Bluetooth permissions.</li> <li>Try enabling Location Services.</li> <li>Check Developer Console (F12) for errors.</li> </ul>
+        <h3>About</h3> <p>PicoLight Controller v3.5 - Web Bluetooth Interface.</p>
+    </div>
+    </div>
+</div>
+
+<script>
+    // BLE UUIDs and Recipe definitions
+    // List ALL potential SERVICE UUIDs your devices might use
+    const knownServiceUUIDs = [
+        "19b10000-e8f2-537e-4f6c-d104768a1214", // Original
+        "19b10000-e8f2-537e-4f6c-d104768a1215", // Second device example
+        // Add more here if needed
+    ];
+    // Characteristic UUIDs (These should be IDENTICAL across all devices using this firmware)
+    const recipeCharUUID = "19b10001-e8f2-537e-4f6c-d104768a1214";
+    const customCharUUID = "19b10002-e8f2-537e-4f6c-d104768a1214";
+    const controlCharUUID = "19b10003-e8f2-537e-4f6c-d104768a1214";
+
+    const recipes = ["balanced", "warm", "cool", "daylight", "veg_growth", "bloom", "seedling", "succulent", "purple_glow", "sunrise", "sunset", "forest", "aquarium", "night_light", "inspection", "off"]; // MUST MATCH config.py RECIPE_KEYS order
+    const recipeColors = { balanced:"rgb(255,64,128)",warm:"rgb(255,140,20)",cool:"rgb(180,200,255)",daylight:"rgb(255,230,210)",veg_growth:"rgb(50,255,70)",bloom:"rgb(255,100,10)",seedling:"rgb(100,100,200)",succulent:"rgb(220,180,40)",purple_glow:"rgb(180,0,255)",sunrise:"rgb(255,50,20)",sunset:"rgb(255,30,0)",forest:"rgb(30,200,30)",aquarium:"rgb(0,200,255)",night_light:"rgb(50,20,0)",inspection:"rgb(255,255,255)",off:"rgb(0,0,0)" };
+    const recipeCategories = { balanced:"basic",warm:"basic",cool:"basic",daylight:"basic",inspection:"basic",night_light:"basic",off:"basic",veg_growth:"plant",bloom:"plant",seedling:"plant",succulent:"plant",forest:"plant",purple_glow:"mood",sunrise:"mood",sunset:"mood",aquarium:"mood" };
+
+    // --- UI Elements ---
+    const connectButton = document.getElementById("connectButton"), connectionStatus = document.getElementById("connectionStatus"), recipeSelect = document.getElementById("recipeSelect"), colorPreview = document.getElementById("colorPreview"), redSlider = document.getElementById("redSlider"), greenSlider = document.getElementById("greenSlider"), blueSlider = document.getElementById("blueSlider"), whiteSlider = document.getElementById("whiteSlider"), redValue = document.getElementById("redValue"), greenValue = document.getElementById("greenValue"), blueValue = document.getElementById("blueValue"), whiteValue = document.getElementById("whiteValue"), applyCustomColor = document.getElementById("applyCustomColor"), saveRecipeBtn = document.getElementById("saveRecipeBtn"), customRecipesGrid = document.getElementById("customRecipesGrid"), clearRecipesBtn = document.getElementById("clearRecipesBtn"), toastElement = document.getElementById("toast"), recipeGrid = document.getElementById("recipeGrid"), themeToggle = document.getElementById("themeToggle"), showHelpBtn = document.getElementById("showHelp"), helpOverlay = document.getElementById("helpOverlay"), closeHelpBtn = document.getElementById("closeHelp"), lightsOnBtn = document.getElementById("lightsOnBtn"), lightsOffBtn = document.getElementById("lightsOffBtn"), deviceSelectionOverlay = document.getElementById("deviceSelectionOverlay"), deviceList = document.getElementById("deviceList"), scanAgainBtn = document.getElementById("scanAgainBtn"), cancelScanBtn = document.getElementById("cancelScanBtn"), autoConnectBtn = document.getElementById("autoConnectBtn"), spinnerOverlay = document.getElementById('spinnerOverlay'), spinnerText = document.getElementById('spinnerText');
+    const connectedDeviceInfo = document.getElementById('connectedDeviceInfo'); const connectedDeviceName = document.getElementById('connectedDeviceName'); const renameConnectedDeviceBtn = document.getElementById('renameConnectedDeviceBtn');
+    const onHoursInput = document.getElementById('onHoursInput'); const offHoursInput = document.getElementById('offHoursInput'); const activeRecipeSelect = document.getElementById('activeRecipeSelect'); const applyScheduleBtn = document.getElementById('applyScheduleBtn'); const setActiveRecipeBtn = document.getElementById('setActiveRecipeBtn'); const requestSettingsBtn = document.getElementById('requestSettingsBtn'); const scheduleStatus = document.getElementById('scheduleStatus');
+
+    // --- BLE Variables ---
+    let bleDevice, bleServer, recipeCharacteristic, customCharacteristic, controlCharacteristic;
+    let discoveredDevices = [], savedDevices = loadSavedDevices();
+    let autoReconnect = localStorage.getItem('picolight-auto-reconnect') === 'true';
+
+    // --- Command & Notification Codes (Match Python) ---
+    const CMD_LIGHTS_OFF = 0, CMD_LIGHTS_ON = 1, CMD_TOGGLE_AUTO = 2;
+    const CMD_SET_ON_HOURS = 10, CMD_SET_OFF_HOURS = 11, CMD_REQ_SETTINGS = 12;
+    const CMD_SET_ACTIVE_RECIPE = 13;
+    const CMD_REQ_STATUS = 20;
+    const NOTIFY_AUTO_ON = 102, NOTIFY_AUTO_OFF = 103;
+    const NOTIFY_SETTINGS_UPDATE = 112;
+    const NOTIFY_STATUS_UPDATE = 120;
+
+    let customRecipes = loadCustomRecipes(); // Custom recipes stored locally
+
+    // ───────────────────────────────────────────────────────────────────────────
+    // Initialization and Setup
+    // ───────────────────────────────────────────────────────────────────────────
+    function initialize() { /* ... calls other setup functions ... */ loadThemePreference(); populateRecipeSelect(); populateRecipeGrid(); populateActiveRecipeSelect(); displayCustomRecipes(); setupEventListeners(); setupDeviceScanEventListeners(); updateAutoReconnectButton(); enableUIControls(); setTimeout(tryAutoReconnect, 1000); }
+    function populateActiveRecipeSelect() { activeRecipeSelect.innerHTML = '<option value="" disabled selected>Select Recipe...</option>'; recipes.forEach((r, i) => { const o = document.createElement("option"); o.value = i; o.textContent = r.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()); activeRecipeSelect.appendChild(o); }); }
+    function setupEventListeners() { connectButton.addEventListener("click", attemptConnect); const tU = throttle(updateColorPreview, 50); [redSlider, greenSlider, blueSlider, whiteSlider].forEach(s => s.addEventListener("input", tU)); applyCustomColor.addEventListener("click", applyCustomColorHandler); saveRecipeBtn.addEventListener("click", saveCustomRecipe); clearRecipesBtn.addEventListener("click", clearCustomRecipes); lightsOnBtn.addEventListener("click", sendLightsOn); lightsOffBtn.addEventListener("click", sendLightsOff); themeToggle.addEventListener("click", toggleTheme); showHelpBtn.addEventListener("click", (e) => { e.preventDefault(); showHelp(); }); closeHelpBtn.addEventListener("click", closeHelp); helpOverlay.addEventListener("click", (e) => { if (e.target === helpOverlay) closeHelp(); }); autoConnectBtn.addEventListener("click", toggleAutoReconnect); applyScheduleBtn.addEventListener('click', applyScheduleHoursHandler); setActiveRecipeBtn.addEventListener('click', setActiveRecipeHandler); requestSettingsBtn.addEventListener('click', requestCurrentSettings); onHoursInput.addEventListener('input', () => validateHourInput(onHoursInput)); offHoursInput.addEventListener('input', () => validateHourInput(offHoursInput)); renameConnectedDeviceBtn.addEventListener('click', handleRenameConnectedDevice); }
+    function setupDeviceScanEventListeners() { scanAgainBtn.addEventListener("click", startDeviceDiscovery); cancelScanBtn.addEventListener("click", hideDeviceSelectionDialog); deviceSelectionOverlay.addEventListener('click', (e)=>{ if(e.target===deviceSelectionOverlay){hideDeviceSelectionDialog(); if(!bleDevice||!bleDevice.gatt.connected){onDisconnected();}} }); }
+    function validateHourInput(el) { let v=parseInt(el.value);if(isNaN(v)){return;} if(v<0)el.value=0;if(v>24)el.value=24; }
+
+    // ───────────────────────────────────────────────────────────────────────────
+    // Core UI & Utility Functions
+    // ───────────────────────────────────────────────────────────────────────────
+    function disableUIControls() { document.querySelectorAll("button, input, select").forEach(el=>{if(el!==themeToggle&&el!==showHelpBtn&&el!==closeHelpBtn&&el!==cancelScanBtn&&el!==connectButton){el.disabled=true;}}); if(bleDevice&&bleDevice.gatt.connected){connectButton.disabled=false;}else{connectButton.disabled=true;} renameConnectedDeviceBtn.disabled=true;themeToggle.disabled=false;showHelpBtn.disabled=false; }
+    function enableUIControls() { if(bleDevice&&bleDevice.gatt.connected){ document.querySelectorAll("button, input, select").forEach(el=>{if(el!==themeToggle&&el!==showHelpBtn&&el!==closeHelpBtn&&el!==cancelScanBtn&&el!==connectButton&&el!==autoConnectBtn&&el!==renameConnectedDeviceBtn){el.disabled=false;}}); connectButton.innerHTML='<i class="fas fa-bluetooth"></i> Disconnect';connectButton.disabled=false;autoConnectBtn.disabled=false;renameConnectedDeviceBtn.disabled=false;themeToggle.disabled=false;showHelpBtn.disabled=false;clearRecipesBtn.disabled=customRecipes.length===0;connectedDeviceInfo.style.display='flex'; } else { document.querySelectorAll("button, input, select").forEach(el=>{if(el!==themeToggle&&el!==showHelpBtn&&el!==closeHelpBtn&&el!==cancelScanBtn&&el!==connectButton&&el!==autoConnectBtn){el.disabled=true;}}); connectButton.innerHTML='<i class="fas fa-bluetooth"></i> Connect';connectButton.disabled=false;autoConnectBtn.disabled=false;themeToggle.disabled=false;showHelpBtn.disabled=false;renameConnectedDeviceBtn.disabled=true;connectedDeviceInfo.style.display='none';scheduleStatus.textContent="Connect to device to manage settings.";onHoursInput.value=12;offHoursInput.value=12;activeRecipeSelect.value=""; } }
+    function toggleTheme(){ const d=document.documentElement,c=d.getAttribute('data-theme'),n=c==='dark'?'light':'dark';d.setAttribute('data-theme',n);themeToggle.innerHTML=n==='dark'?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>';themeToggle.title=`Switch to ${n==='dark'?'light':'dark'} mode`;localStorage.setItem('picolight-theme',n); } function loadThemePreference(){ const s=localStorage.getItem('picolight-theme')||'light';document.documentElement.setAttribute('data-theme',s);themeToggle.innerHTML=s==='dark'?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>';themeToggle.title=`Switch to ${s==='dark'?'light':'dark'} mode`; } function showHelp(){ helpOverlay.classList.add('active'); } function closeHelp(){ helpOverlay.classList.remove('active'); } function showSpinner(m="Processing..."){ spinnerText.textContent=m; spinnerOverlay.classList.add("active"); disableUIControls(); } function hideSpinner(){ spinnerOverlay.classList.remove("active"); enableUIControls(); }
+    function saveDeviceToMemory(d,sUUID){ const i={id:d.id,name:d.name||'PicoLight',customName:(findSavedDeviceById(d.id)?.customName)||(d.name||'PicoLight'),serviceUUID:sUUID,lastConnected:new Date().toISOString()}; const x=savedDevices.findIndex(v=>v.id===d.id); if(x>=0){savedDevices[x]={...savedDevices[x],...i};}else{savedDevices.push(i);} localStorage.setItem('picolight-saved-devices',JSON.stringify(savedDevices));localStorage.setItem('picolight-last-device',d.id); } function loadSavedDevices(){ const s=localStorage.getItem('picolight-saved-devices'); try { return s?JSON.parse(s):[]; } catch(e) { console.error("Failed to parse saved devices", e); return []; } } function findSavedDeviceById(id){ return savedDevices.find(d=>d.id===id); } function getDeviceDisplayName(id){ const d=findSavedDeviceById(id); return d?(d.customName||d.name||'PicoLight Device'):'Unknown'; }
+    function promptForDeviceName(id){ const d=findSavedDeviceById(id);if(!d)return; const cN=d.customName||d.name||''; const nN=prompt("Enter custom name:",cN); if(nN!==null){ const tN=nN.trim(); if(tN){d.customName=tN;localStorage.setItem('picolight-saved-devices',JSON.stringify(savedDevices)); if(bleDevice&&bleDevice.id===id){connectedDeviceName.textContent=tN;} showToast(`Renamed to "${tN}"`);}else{showToast("Name cannot be empty.");}} } function handleRenameConnectedDevice(){ if(!bleDevice||!bleDevice.gatt.connected)return showToast("Not connected."); promptForDeviceName(bleDevice.id); }
+    function toggleAutoReconnect(){ autoReconnect=!autoReconnect; localStorage.setItem('picolight-auto-reconnect',autoReconnect.toString()); updateAutoReconnectButton(); showToast(`Auto-reconnect ${autoReconnect?'enabled':'disabled'}`); } function updateAutoReconnectButton(){ if(autoConnectBtn){autoConnectBtn.classList.toggle('active',autoReconnect); autoConnectBtn.innerHTML=autoReconnect?'<i class="fas fa-link"></i> Auto-Reconnect: ON':'<i class="fas fa-unlink"></i> Auto-Reconnect: OFF';} } function throttle(f,l){ let t; return function(){ const a=arguments,c=this; if(!t){f.apply(c,a);t=true;setTimeout(()=>t=false,l);}};}
+
+    // ───────────────────────────────────────────────────────────────────────────
+    // Bluetooth Functions
+    // ───────────────────────────────────────────────────────────────────────────
+    function attemptConnect(){ if(bleDevice&&bleDevice.gatt.connected){showSpinner("Disconnecting...");bleDevice.gatt.disconnect();return;} startDeviceDiscovery(); }
+    function startDeviceDiscovery(){ // MODIFIED: Filter only by namePrefix
+        if(!navigator.bluetooth){return showToast("Web Bluetooth not available.");}
+        discoveredDevices=[];updateDeviceListUI();showDeviceSelectionDialog();showSpinner("Scanning...");
+        navigator.bluetooth.requestDevice({
+            filters: [ { namePrefix: 'PicoLight' } ], // Only filter by name
+            optionalServices: knownServiceUUIDs // Still need to declare services we INTEND to use
+        })
+        .then(d=>{console.log("Device selected:",d.name,d.id);hideDeviceSelectionDialog();bleDevice=d;connectToSelectedDevice();})
+        .catch(e=>{console.error("Scan error:",e);hideSpinner();hideDeviceSelectionDialog();let m=`Scan Error: ${e.message}`;if(e.name==='NotFoundError'){m="No PicoLight devices found.";}else if(e.name==='NotAllowedError'){m="Bluetooth access denied.";} showToast(m); onDisconnected();});
+    }
+    function updateDeviceListUI(){ // Shows discovered devices, no rename button here
+        deviceList.innerHTML=""; if(discoveredDevices.length===0){deviceList.innerHTML="<p style='text-align:center;color:#888;'>Scanning...</p>";return;} const lId=localStorage.getItem('picolight-last-device'); discoveredDevices.sort((a,b)=>{if(a.id===lId)return-1; if(b.id===lId)return 1; return getDeviceDisplayName(a.id).localeCompare(getDeviceDisplayName(b.id));}); discoveredDevices.forEach(dI=>{const it=document.createElement("div");it.className="device-item";it.dataset.deviceId=dI.id; const n=getDeviceDisplayName(dI.id);const iL=dI.id===lId; const s=findSavedDeviceById(dI.id); const lC=s?new Date(s.lastConnected):null; let lT=''; if(lC&&!isNaN(lC)){lT=`Last used: ${lC.toLocaleDateString()} ${lC.toLocaleTimeString()}`;} it.innerHTML=`<div class="device-icon"><i class="fas fa-lightbulb"></i></div><div class="device-info"><div class="device-name">${n}</div><div class="device-id">ID: ${generateShortId(dI.id)}${iL?'<span class="last-device-badge">Last</span>':''}</div>${lT?`<div class="last-connected">${lT}</div>`:''}</div>`; it.addEventListener("click",()=>{ const sel=discoveredDevices.find(d=>d.id===dI.id); if(sel){bleDevice=sel.device;hideDeviceSelectionDialog();connectToSelectedDevice();}else{showToast("Error selecting.");} }); deviceList.appendChild(it); });
+    }
+    function generateShortId(id){ if(!id||typeof id!=='string'||id.length<12)return id||"Unknown"; return id.substring(0,8)+"..."+id.substring(id.length-8); }
+    async function findPrimaryService(server,uuids){ for(const u of uuids){try{const s=await server.getPrimaryService(u);console.log(`Using service: ${u}`);return {service:s,serviceUUID:u};}catch(e){/* Service not found */}} throw new Error("No compatible service found."); } function showDeviceSelectionDialog(){deviceSelectionOverlay.classList.add("active");} function hideDeviceSelectionDialog(){deviceSelectionOverlay.classList.remove("active");}
+    function tryAutoReconnect() { // MODIFIED: Doesn't call scan automatically
+        if(!autoReconnect)return; const lId=localStorage.getItem('picolight-last-device'); if(!lId)return; const lN=getDeviceDisplayName(lId); console.log(`Auto-reconnect enabled. Last: ${lN}. User must click Connect.`); showToast(`Ready to connect to ${lN}. Click Connect.`,4000); if(connectButton.disabled&&(!bleDevice||!bleDevice.gatt.connected)){connectButton.disabled=false;connectButton.innerHTML='<i class="fas fa-bluetooth"></i> Connect';}
+    }
+    function connectToSelectedDevice() { if (!bleDevice) return showToast("No device selected"); showSpinner(`Connecting to ${getDeviceDisplayName(bleDevice.id)}...`); bleDevice.gatt.connect() .then(s => { console.log("GATT Connected"); bleServer = s; return findPrimaryService(s, knownServiceUUIDs); }) .then(({ service, serviceUUID }) => { console.log(`Found service: ${serviceUUID}`); return Promise.all([service.getCharacteristic(recipeCharUUID), service.getCharacteristic(customCharUUID), service.getCharacteristic(controlCharUUID)]).then(chars => ({ chars, serviceUUID })); }) .then(({ chars, serviceUUID }) => { recipeCharacteristic = chars[0]; customCharacteristic = chars[1]; controlCharacteristic = chars[2]; console.log("Characteristics obtained."); return controlCharacteristic.startNotifications().then(() => { console.log("Notifications started."); controlCharacteristic.addEventListener('characteristicvaluechanged', handleControlNotification); return { serviceUUID }; }).catch(e => { console.error("Notify Start Err:", e); showToast("Warn: Failed device updates."); return { serviceUUID }; }); }) .then(({ serviceUUID }) => { saveDeviceToMemory(bleDevice, serviceUUID); const dN = getDeviceDisplayName(bleDevice.id); connectionStatus.textContent = "Connected"; connectionStatus.className = "status-badge status-connected"; connectedDeviceName.textContent = dN; connectedDeviceInfo.style.display = 'flex'; bleDevice.addEventListener("gattserverdisconnected", onDisconnected); hideSpinner(); enableUIControls(); showToast(`Connected to ${dN}`); requestCurrentSettings(); }) .catch(e => { console.error("Connection Err:", e); hideSpinner(); showToast(`Connection failed: ${e.message}`); onDisconnected(); }); }
+
+    function handleControlNotification(event) { const v=event.target.value;if(!v||v.byteLength===0)return; const cC=v.getUint8(0);console.log(`Notify - Code:${cC},Len:${v.byteLength}`); try{switch(cC){case NOTIFY_SETTINGS_UPDATE:if(v.byteLength>=4){const onH=v.getUint8(1),offH=v.getUint8(2),actIdx=v.getUint8(3);console.log(`Settings Update: ON=${onH},OFF=${offH},ActiveIdx=${actIdx}`);onHoursInput.value=onH;offHoursInput.value=offH;activeRecipeSelect.value=actIdx;scheduleStatus.textContent=`Current: ${onH}h ON/${offH}h OFF. Auto Recipe: ${activeRecipeSelect.options[activeRecipeSelect.selectedIndex]?.textContent||'?'}.`;showToast("Settings updated");}else{console.warn("Incomplete settings notify.");}break; case NOTIFY_AUTO_ON:showToast("Auto Cycle Enabled(Pico)");break; case NOTIFY_AUTO_OFF:showToast("Auto Cycle Disabled(Pico)");break; case NOTIFY_STATUS_UPDATE:break; default:console.log(`Unhandled notify:${cC}`);break;}}catch(e){console.error("Notify err:",e,event);} }
+    function onDisconnected(){ console.log(`Disconnected:${bleDevice?bleDevice.id:'?'}`); if(bleDevice){ const d=findSavedDeviceById(bleDevice.id); if(d){d.lastConnected=new Date().toISOString();localStorage.setItem('picolight-saved-devices',JSON.stringify(savedDevices));} try{bleDevice.removeEventListener("gattserverdisconnected",onDisconnected);}catch(e){} } if(controlCharacteristic){ try{controlCharacteristic.removeEventListener('characteristicvaluechanged',handleControlNotification);console.log("Removed notify listener.");}catch(e){} } bleDevice=null;bleServer=null;recipeCharacteristic=null;customCharacteristic=null;controlCharacteristic=null; connectionStatus.textContent="Disconnected";connectionStatus.className="status-badge status-disconnected"; connectedDeviceInfo.style.display='none';connectedDeviceName.textContent=""; document.querySelectorAll(".recipe-item.active").forEach(i=>i.classList.remove("active"));recipeSelect.value=""; redSlider.value=0;greenSlider.value=0;blueSlider.value=0;whiteSlider.value=0; updateColorPreview(); hideSpinner(); enableUIControls(); showToast("Disconnected"); }
+
+    // ───────────────────────────────────────────────────────────────────────────
+    // Recipe and Color Functions
+    // ───────────────────────────────────────────────────────────────────────────
+    function populateRecipeSelect(){ /* For hidden select */ recipeSelect.innerHTML='<option value="" disabled selected>Select recipe</option>'; recipes.forEach((r,i)=>{const o=document.createElement("option");o.value=i;o.textContent=r.replace(/_/g," ").replace(/\b\w/g,l=>l.toUpperCase());recipeSelect.appendChild(o);}); }
+    function populateRecipeGrid(){ /* For visible grid */ recipeGrid.innerHTML=""; recipes.forEach((r,i)=>{ const c=recipeCategories[r]||"basic"; const item=document.createElement("div");item.className="recipe-item";item.dataset.category=c;item.dataset.recipeIndex=i;item.title=`Apply ${r.replace(/_/g," ")}`; const clr=document.createElement("div");clr.className="recipe-color";clr.style.backgroundColor=recipeColors[r]||"#888"; const nam=document.createElement("div");nam.className="recipe-name";nam.textContent=r.replace(/_/g," ").replace(/\b\w/g,l=>l.toUpperCase()); item.appendChild(clr);item.appendChild(nam); item.addEventListener("click",()=>{if(!bleDevice||!bleDevice.gatt.connected)return showToast("Not connected"); applyPresetRecipe(i,r);}); recipeGrid.appendChild(item); }); initCategoryFilter(); }
+    function initCategoryFilter(){ const btns=document.querySelectorAll(".category-btn"); btns.forEach(b=>{b.addEventListener("click",function(){btns.forEach(i=>i.classList.remove("active"));this.classList.add("active");filterRecipesByCategory(this.dataset.category);});}); filterRecipesByCategory('all'); } function filterRecipesByCategory(c){ document.querySelectorAll(".recipe-item").forEach(i=>{i.style.display=(c==="all"||i.dataset.category===c)?"":"none";}); }
+    function applyPresetRecipe(idx,name){ if(!recipeCharacteristic)return showToast("Not connected"); showSpinner(`Applying ${name.replace(/_/g," ")}...`); document.querySelectorAll(".recipe-item").forEach(i=>{i.classList.toggle("active",parseInt(i.dataset.recipeIndex)===idx);}); recipeSelect.value=idx; recipeCharacteristic.writeValue(new Uint8Array([idx])) .then(()=>{setTimeout(()=>{hideSpinner();showToast(`Applied: ${name.replace(/_/g," ")}`);},300);}) .catch(e=>{console.error("Recipe write err:",e);hideSpinner();showToast(`Failed: ${e.message}`);document.querySelectorAll(".recipe-item.active").forEach(i=>i.classList.remove("active"));recipeSelect.value="";}); }
+    function updateColorPreview(){ const r=parseInt(redSlider.value),g=parseInt(greenSlider.value),b=parseInt(blueSlider.value),w=parseInt(whiteSlider.value); redValue.textContent=r;greenValue.textContent=g;blueValue.textContent=b;whiteValue.textContent=w; const dR=Math.min(255,r+Math.round(w/3)),dG=Math.min(255,g+Math.round(w/3)),dB=Math.min(255,b+Math.round(w/3)); colorPreview.style.backgroundColor=`rgb(${dR},${dG},${dB})`; document.querySelectorAll(".recipe-item.active").forEach(i=>i.classList.remove("active")); recipeSelect.value=""; } function applyCustomColorHandler(){ if(!customCharacteristic)return showToast("Not connected"); const r=parseInt(redSlider.value),g=parseInt(greenSlider.value),b=parseInt(blueSlider.value),w=parseInt(whiteSlider.value); showSpinner("Applying custom..."); customCharacteristic.writeValue(new Uint8Array([r,g,b,w])) .then(()=>{setTimeout(()=>{hideSpinner();showToast("Custom color applied");},300);}) .catch(e=>{hideSpinner();showToast(`Failed: ${e.message}`);}); }
+    function sendCommand(cmd){ if(!controlCharacteristic) { showToast("Not connected"); return Promise.reject("Not Connected"); } console.log(`Sending CMD: ${cmd}`); return controlCharacteristic.writeValue(new Uint8Array([cmd]));} function sendLightsOn(){ showSpinner("Turning ON..."); sendCommand(CMD_LIGHTS_ON).then(()=>{document.querySelectorAll(".recipe-item").forEach(i=>{const r=recipes[parseInt(i.dataset.recipeIndex)];i.classList.toggle(r==='balanced',true);}); setTimeout(()=>{hideSpinner();showToast("Lights ON");},300);}).catch(e=>{hideSpinner();showToast(`ON Failed: ${e.message}`);});} function sendLightsOff(){ showSpinner("Turning OFF..."); sendCommand(CMD_LIGHTS_OFF).then(()=>{document.querySelectorAll(".recipe-item").forEach(i=>{const r=recipes[parseInt(i.dataset.recipeIndex)];i.classList.toggle(r==='off',true);}); setTimeout(()=>{hideSpinner();showToast("Lights OFF");},300);}).catch(e=>{hideSpinner();showToast(`OFF Failed: ${e.message}`);});}
+
+    // ───────────────────────────────────────────────────────────────────────────
+    // Custom Recipe Functions (Local Storage)
+    // ───────────────────────────────────────────────────────────────────────────
+    function saveCustomRecipe(){ const r=parseInt(redSlider.value),g=parseInt(greenSlider.value),b=parseInt(blueSlider.value),w=parseInt(whiteSlider.value); const n=prompt("Recipe name:",""); if(!n||!n.trim())return showToast("Name empty."); const rec={name:n.trim(),r,g,b,w,id:Date.now()}; customRecipes.push(rec);saveCustomRecipesToStorage();displayCustomRecipes();showToast(`Recipe "${rec.name}" saved`); } function clearCustomRecipes(){ if(customRecipes.length>0&&confirm("Delete ALL custom recipes?")){customRecipes=[];saveCustomRecipesToStorage();displayCustomRecipes();showToast("Custom recipes cleared");}else if(customRecipes.length===0){showToast("No recipes to clear.");} } function displayCustomRecipes(){ customRecipesGrid.innerHTML=""; clearRecipesBtn.disabled=customRecipes.length===0; if(customRecipes.length===0){customRecipesGrid.innerHTML='<p style="grid-column:1/-1;text-align:center;color:#666;">No saved custom recipes.</p>';return;} customRecipes.forEach(r=>{const card=document.createElement("div");card.className="recipe-card"; const clr=document.createElement("div");clr.className="recipe-color"; const dR=Math.min(255,r.r+Math.round(r.w/3)),dG=Math.min(255,r.g+Math.round(r.w/3)),dB=Math.min(255,r.b+Math.round(r.w/3)); clr.style.backgroundColor=`rgb(${dR},${dG},${dB})`; const tit=document.createElement("div");tit.className="recipe-title";tit.textContent=r.name; const txt=document.createElement("div");txt.style.fontSize="0.8rem";txt.style.textAlign="center";txt.textContent=`R:${r.r} G:${r.g} B:${r.b} W:${r.w}`; const btns=document.createElement("div");btns.className="recipe-buttons"; const app=document.createElement("button");app.className="recipe-button";app.innerHTML='<i class="fas fa-play"></i> Apply';app.title=`Apply ${r.name}`;app.disabled=!(bleDevice&&bleDevice.gatt.connected);app.addEventListener("click",()=>applyCustomRecipe(r)); const del=document.createElement("button");del.className="recipe-button";del.style.backgroundColor="var(--danger-color)";del.innerHTML='<i class="fas fa-trash"></i>';del.title=`Delete ${r.name}`;del.addEventListener("click",()=>deleteCustomRecipe(r.id)); btns.appendChild(app);btns.appendChild(del); card.appendChild(clr);card.appendChild(tit);card.appendChild(txt);card.appendChild(btns); customRecipesGrid.appendChild(card); }); } function applyCustomRecipe(r){ if(!customCharacteristic)return showToast("Not connected"); showSpinner(`Applying ${r.name}...`); redSlider.value=r.r;greenSlider.value=r.g;blueSlider.value=r.b;whiteSlider.value=r.w; updateColorPreview(); document.querySelectorAll(".recipe-item.active").forEach(i=>i.classList.remove("active"));recipeSelect.value=""; customCharacteristic.writeValue(new Uint8Array([r.r,r.g,r.b,r.w])) .then(()=>{setTimeout(()=>{hideSpinner();showToast(`Applied: ${r.name}`);},300);}) .catch(e=>{hideSpinner();showToast(`Failed: ${e.message}`);}); } function deleteCustomRecipe(id){ const rec=customRecipes.find(r=>r.id===id); if(rec&&confirm(`Delete recipe "${rec.name}"?`)){customRecipes=customRecipes.filter(r=>r.id!==id);saveCustomRecipesToStorage();displayCustomRecipes();showToast(`"${rec.name}" deleted`);} }
+
+    // ───────────────────────────────────────────────────────────────────────────
+    // Schedule & Settings Functions
+    // ───────────────────────────────────────────────────────────────────────────
+    function applyScheduleHoursHandler() { if(!controlCharacteristic)return showToast("Not connected"); let onH=parseInt(onHoursInput.value),offH=parseInt(offHoursInput.value); if(isNaN(onH)||onH<0||onH>24)return showToast("Invalid ON hours (0-24)."); if(isNaN(offH)||offH<0||offH>24)return showToast("Invalid OFF hours (0-24)."); showSpinner("Saving durations..."); controlCharacteristic.writeValue(new Uint8Array([CMD_SET_ON_HOURS,onH])) .then(()=>new Promise(r=>setTimeout(r,100))) .then(()=>controlCharacteristic.writeValue(new Uint8Array([CMD_SET_OFF_HOURS,offH]))) .then(()=>{console.log(`Sent durations:${onH}/${offH}`);setTimeout(()=>{hideSpinner();showToast(`Durations sent`);},500);}) .catch(e=>{hideSpinner();showToast(`Failed: ${e.message}`);}); }
+    function setActiveRecipeHandler() { if(!controlCharacteristic)return showToast("Not connected"); const idx=parseInt(activeRecipeSelect.value); if(isNaN(idx)||activeRecipeSelect.value==="")return showToast("Select recipe first."); const name=recipes[idx]; showSpinner(`Setting Auto Recipe to ${name.replace(/_/g," ")}...`); controlCharacteristic.writeValue(new Uint8Array([CMD_SET_ACTIVE_RECIPE,idx])) .then(()=>{console.log(`Sent Set Active Recipe:${idx}`);setTimeout(()=>{hideSpinner();showToast(`Auto Recipe selection sent`);},500);}) .catch(e=>{hideSpinner();showToast(`Failed: ${e.message}`);}); }
+    function requestCurrentSettings() { if(!controlCharacteristic)return showToast("Not connected"); console.log("Requesting settings..."); scheduleStatus.textContent="Requesting settings..."; showSpinner("Requesting settings..."); sendCommand(CMD_REQ_SETTINGS) .then(()=>{console.log("Settings request sent.");setTimeout(()=>{hideSpinner();},1000);}) .catch(e=>{hideSpinner();showToast(`Request Failed:${e.message}`);scheduleStatus.textContent="Request Failed.";}); }
+
+    // ───────────────────────────────────────────────────────────────────────────
+    // Utility and Local Storage Functions
+    // ───────────────────────────────────────────────────────────────────────────
+    function showToast(message, duration = 3000) { toastElement.textContent=message; toastElement.className="toast show"; setTimeout(()=> {toastElement.className="toast";}, duration); }
+    function loadCustomRecipes() { const s=localStorage.getItem("picoLightCustomRecipes"); try{return s?JSON.parse(s):[];}catch(e){console.error("Parse Err:",e);localStorage.removeItem("picolightCustomRecipes");return[];} }
+    function saveCustomRecipesToStorage() { try{localStorage.setItem("picolightCustomRecipes",JSON.stringify(customRecipes));}catch(e){console.error("Save Err:",e);showToast("Could not save recipes.");} }
+
+    // ───────────────────────────────────────────────────────────────────────────
+    // On Page Load Execution
+    // ───────────────────────────────────────────────────────────────────────────
+    document.addEventListener("DOMContentLoaded", initialize);
+    if (!navigator.bluetooth) { showToast("Web Bluetooth not supported!",5000); connectButton.disabled=true; connectButton.innerHTML='<i class="fas fa-times-circle"></i> No Bluetooth'; autoConnectBtn.disabled=true; }
+
+</script>
+</body>
+</html>
