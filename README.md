@@ -80,7 +80,7 @@ PicoLight Controller allows you to wirelessly control RGBW LED strips connected 
 ## Usage Instructions
 
 1.  **Power On**: Ensure your PicoLight device(s) are powered on and running the firmware.
-2.  **Open Web App**: Open the `BLEwithMemandReconect.html` file in your compatible browser.
+2.  **Open Web App**: Open the `LocalConnectingCode.html file in your compatible browser.
 3.  **Connect**: Click the "Connect" button. Your browser should show a popup listing nearby Bluetooth devices whose names start with "PicoLight".
 4.  **Select Device**: Choose the desired PicoLight device from the list and click "Pair" or "Connect".
 5.  **Wait**: The status should change to "Connected", and the device name (or your custom name) will appear. Controls will become enabled.
