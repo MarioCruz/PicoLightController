@@ -1,8 +1,9 @@
 """
-main.py - v4.4.4 (Final Sensor Init Fix)
+main.py - v4.4.9 (Final Color Correction)
 
-This version uses the restored SENSOR_INIT_DELAY_S from config.py, which is
-required by unified_sensor.py for proper hardware stabilization.
+Removes the incorrect (G,R,B,W) color re-ordering. With bpp=4 set,
+the neopixel library correctly expects the standard (R,G,B,W) tuple,
+which is how the data is already formatted. This is the definitive fix.
 """
 
 # --- Standard Library Imports ---
@@ -165,13 +166,21 @@ def process_schedule_command(payload):
 # ---------------------------------------------------------------------------
 class LightController:
     def __init__(self, pin, num_pixels):
-        self.np = neopixel.NeoPixel(machine.Pin(pin), num_pixels)
+        # Initialize NeoPixel library in 4-channel (RGBW) mode
+        self.np = neopixel.NeoPixel(machine.Pin(pin), num_pixels, bpp=4)
         self.current_recipe_name = 'off'
+        
     def set_recipe_by_name(self, recipe_name, duration_sec=None):
         if recipe_name in config.LIGHT_RECIPES:
-            self.np.fill(config.LIGHT_RECIPES[recipe_name]); self.np.write()
-            self.current_recipe_name = recipe_name; return True
+            # *** FIX: REMOVED incorrect color re-ordering ***
+            # The library expects (R,G,B,W) when bpp=4, which matches our config.
+            color_tuple = config.LIGHT_RECIPES[recipe_name]
+            self.np.fill(color_tuple)
+            self.np.write()
+            self.current_recipe_name = recipe_name
+            return True
         return False
+        
     def get_current_recipe_name(self): return self.current_recipe_name
 
 class BluetoothController:
@@ -202,7 +211,6 @@ class BluetoothController:
             name = config.BT_DEVICE_NAME.encode()
             adv_payload = b'\x02\x01\x06' + bytes([len(name) + 1, 0x09]) + name
             self.ble.gap_advertise(config.BT_ADV_INTERVAL_US, adv_data=adv_payload)
-            # This line prints the device name to the console upon advertising
             print(f"INFO: Advertising as '{config.BT_DEVICE_NAME}'..."); ble_needs_restart = False
         except Exception as e: log_event("ERROR", f"BLE advertising failed: {e}"); ble_needs_restart = True
 
@@ -240,7 +248,9 @@ class BluetoothController:
                 r, g, b, w = struct.unpack('!BBBB', data)
                 log_event("BLE", f"Received custom color: R={r} G={g} B={b} W={w}")
                 set_manual_override()
-                self.lights.np.fill((r, g, b, w)); self.lights.np.write()
+                # *** FIX: REMOVED incorrect color re-ordering ***
+                self.lights.np.fill((r, g, b, w))
+                self.lights.np.write()
                 self.lights.current_recipe_name = 'custom'
         except Exception as e: log_event("ERROR", f"Handling custom write: {e}")
             
