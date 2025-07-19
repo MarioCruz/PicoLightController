@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>GBE Mini v1.5.6 (Combi Sensor)</title>
+    <title>GBE Mini v1.7 (Simplified UI)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"/>
     <style>
       /* --- Base CSS --- */
@@ -61,8 +61,8 @@
       button i { line-height: 1; }
       .button-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
 
-      select, input[type="number"] { padding: 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius); background-color: var(--input-bg); color: var(--text-color); font-size: 1rem; transition: border-color 0.2s, box-shadow 0.2s; }
-      select:focus, input[type="number"]:focus { border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(76, 110, 245, 0.2); outline: none; }
+      select, input[type="number"], input[type="time"] { padding: 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius); background-color: var(--input-bg); color: var(--text-color); font-size: 1rem; transition: border-color 0.2s, box-shadow 0.2s; }
+      select:focus, input[type="number"]:focus, input[type="time"]:focus { border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(76, 110, 245, 0.2); outline: none; }
       select { width: 100%; margin-bottom: 15px; }
       input[type="number"] { width: 65px; text-align: center; -moz-appearance: textfield; }
       input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
@@ -145,16 +145,22 @@
       .rename-widget-btn:hover { opacity: 1; background-color: rgba(0, 0, 0, 0.08); } html[data-theme='dark'] .rename-widget-btn:hover { background-color: rgba(255, 255, 255, 0.1); }
       .rename-widget-btn:disabled { color: #adb5bd; cursor: not-allowed; background-color: transparent; opacity: 0.5; }
 
-      .schedule-setting-item { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-      .schedule-setting-item label { font-weight: 600; min-width: 100px; text-align: right; flex-shrink: 0; font-size: 0.95rem; }
-      .schedule-setting-item select { padding: 10px; margin-bottom: 0; flex-grow: 1; max-width: 280px; min-width: 180px; }
-      .schedule-time-inputs { display: flex; align-items: center; gap: 5px; }
-      .schedule-time-inputs span { font-weight: bold; margin: 0 2px; color: var(--text-color); }
-      .schedule-info { font-size: 0.9em; color: var(--icon-color); margin-top: 5px; padding-left: 110px; }
-      html[data-theme='dark'] .schedule-info { color: #aaa; }
-      .schedule-info.small-note { font-size: 0.8em; margin-top: 2px; }
-      .pico-time-display { font-size: 0.85em; color: #555; margin-top: 5px; padding-left: 110px; min-height: 1.2em; }
-      html[data-theme='dark'] .pico-time-display { color: #bbb; }
+      /* --- NEW Schedule Builder Styles --- */
+      .schedule-block-list { min-height: 50px; border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 10px; margin-bottom: 15px; }
+      .schedule-block-item { background-color: var(--light-bg); border-radius: 6px; padding: 8px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.2s; }
+      html[data-theme='dark'] .schedule-block-item { background-color: var(--dark-bg); }
+      .schedule-block-item span { font-weight: 500; }
+      .schedule-block-item button { background: none; border: none; color: var(--danger-color); font-size: 1.2rem; cursor: pointer; padding: 0 5px; opacity: 0.7; transition: opacity 0.2s; }
+      .schedule-block-item button:hover { opacity: 1; }
+      .schedule-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 15px; }
+      .schedule-form input, .schedule-form select { padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--input-bg); color: var(--text-color); margin-bottom: 0; }
+      .schedule-form select { flex-grow: 1; min-width: 150px; }
+      .schedule-form label { font-weight: 500; color: var(--icon-color); }
+      #addBlockBtn { margin-left: auto; }
+      #saveScheduleBtn { background-color: var(--success-color); }
+      #saveScheduleBtn:hover { background-color: #37b24d; }
+      #clearScheduleBtn { background-color: var(--danger-color); }
+      #clearScheduleBtn:hover { background-color: #e03131; }
 
       .sensor-data-container {
           display: grid;
@@ -170,10 +176,7 @@
       .sensor-item .sensor-value { font-size: 1.2rem; font-weight: 600; color: var(--text-color); line-height: 1.2; }
       .sensor-item .sensor-unit { font-size: 0.8rem; color: var(--icon-color); margin-left: 2px; }
       .sensor-item .sensor-value.error-text { color: var(--danger-color); font-weight: normal; font-size: 0.9em; }
-      .sensor-card button#refreshSensorBtn { display: block; margin: 10px auto 0 auto; background-color: var(--secondary-color); }
-      .sensor-card button#refreshSensorBtn:hover { background-color: var(--primary-color); }
-      .sensor-card button#refreshSensorBtn:disabled { background-color: #adb5bd; }
-      html[data-theme='dark'] .sensor-card button#refreshSensorBtn:disabled { background-color: #495057; }
+      .sensor-card .pico-status-display { text-align:center; font-size: 0.85rem; color: var(--icon-color); margin-top: 10px; }
 
       /* --- Temperature Toggle Styles --- */
       .sensor-label-container { display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 3px; }
@@ -183,14 +186,6 @@
       html[data-theme='dark'] .temp-unit-toggle:hover { background-color: var(--primary-color); color: var(--card-bg); }
       .temp-unit-toggle:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; color: var(--icon-color) !important; border-color: var(--icon-color); }
 
-      /* --- Enable Auto Cycle Button Style --- */
-      #enableAutoCycleBtn { background-color: var(--success-color); }
-      #enableAutoCycleBtn:hover { background-color: #37b24d; }
-      html[data-theme='dark'] #enableAutoCycleBtn:hover { background-color: #51cf66; }
-      #enableAutoCycleBtn:disabled { background-color: #adb5bd !important; } /* Ensure disabled style overrides */
-      html[data-theme='dark'] #enableAutoCycleBtn:disabled { background-color: #495057 !important; }
-
-
       /* Media Queries */
       @media (max-width: 768px) {
         .container { padding: 15px; }
@@ -198,10 +193,7 @@
         .header-left { text-align: center; }
         .header-right { width: 100%; justify-content: center; }
         .connection-widget { width: 100%; max-width: 320px; margin: 0 auto; }
-        .button-group { justify-content: center; } /* Center buttons */
-        .schedule-setting-item { justify-content: space-between; }
-        .schedule-setting-item label { min-width: 80px; text-align: left; }
-        .pico-time-display, .schedule-info { padding-left: 0; text-align: center; }
+        .button-group { justify-content: center; }
         .sensor-data-container { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 15px; }
         .sensor-item .sensor-icon { font-size: 1.6rem; }
         .sensor-item .sensor-value { font-size: 1.2rem; }
@@ -215,10 +207,9 @@
          .recipe-color { width: 30px; height: 30px; }
          .recipe-name { font-size: 0.75rem; }
          .recipes-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
-         .schedule-setting-item { flex-direction: column; align-items: stretch; gap: 5px; }
-         .schedule-setting-item label { text-align: left; margin-bottom: 2px; }
-         .schedule-time-inputs { justify-content: flex-start; width: 100%; }
-         .schedule-setting-item select { max-width: none; }
+         .schedule-form { flex-direction: column; align-items: stretch; }
+         .schedule-form label { text-align: left; }
+         #addBlockBtn { margin-left: 0; margin-top: 5px; }
          .sensor-data-container { grid-template-columns: repeat(2, 1fr); gap: 10px; }
          .sensor-item { flex-direction: column; padding: 8px; }
          .sensor-item > div { text-align: center; }
@@ -327,7 +318,11 @@
                 </div>
             </div>
         </div>
-        <button id="refreshSensorBtn" disabled><i class="fa-solid fa-arrows-rotate"></i> Refresh Sensor Data</button>
+        <div class="button-group" style="justify-content: center;">
+            <button id="refreshStatusBtn" disabled><i class="fa-solid fa-arrows-rotate"></i> Refresh All</button>
+            <button id="syncTimeBtn" disabled style="background-color: var(--secondary-color);"><i class="fa-solid fa-sync-alt"></i> Sync Pico Time</button>
+        </div>
+        <p class="pico-status-display">Pico Time: <span id="picoTimeDisplay">--:--:--</span> | Free Mem: <span id="picoMemoryDisplay">---</span> KB</p>
     </div>
 
     <!-- Light Recipes Card -->
@@ -346,37 +341,31 @@
     <div class="card">
         <div class="card-header"><h2 class="card-title"><i class="fa-solid fa-power-off"></i> Manual Control</h2></div>
         <div style="display:flex; gap:10px; flex-wrap: wrap;">
-            <button id="lightsOnBtn" style="flex:1;" disabled><i class="fa-solid fa-lightbulb"></i> Lights ON (Auto Recipe)</button>
+            <button id="lightsOnBtn" style="flex:1;" disabled><i class="fa-solid fa-lightbulb"></i> Lights ON (Default)</button>
             <button id="lightsOffBtn" style="flex:1;" disabled><i class="fa-solid fa-toggle-off"></i> Lights OFF</button>
         </div>
-         <p class="schedule-info small-note" style="text-align: center; padding: 10px 0 0 0;">(Turns off auto-cycle if active)</p>
+         <p class="schedule-info small-note" style="text-align: center; padding: 10px 0 0 0;">(Manual control overrides the schedule for the current moment)</p>
     </div>
 
-    <!-- Auto-Cycle & Time Settings Card -->
+    <!-- Advanced Schedule Builder Card -->
     <div class="card">
-        <div class="card-header"> <h2 class="card-title"><i class="fa-solid fa-clock"></i> Auto-Cycle Schedule</h2> </div>
-        <p class="schedule-info" style="padding-left:0; text-align: center; margin-bottom: 15px;">Configure the daily ON/OFF times and the recipe used when turning ON automatically.</p>
-        <div class="schedule-setting-item">
-            <label for="onHourInput">Turn ON Time:</label>
-            <div class="schedule-time-inputs"><input type="number" id="onHourInput" min="0" max="23" value="8" disabled aria-label="ON Hour"/><span>:</span><input type="number" id="onMinuteInput" min="0" max="59" value="0" disabled aria-label="ON Minute"/></div>
+        <div class="card-header"><h2 class="card-title"><i class="fa-solid fa-calendar-days"></i> Advanced Schedule Builder</h2></div>
+        <div id="scheduleBlockList" class="schedule-block-list">
+            <p style="text-align:center; color: var(--icon-color);">Connect to device to load schedule.</p>
         </div>
-        <div class="schedule-setting-item">
-            <label for="offHourInput">Turn OFF Time:</label>
-            <div class="schedule-time-inputs"><input type="number" id="offHourInput" min="0" max="23" value="20" disabled aria-label="OFF Hour"/><span>:</span><input type="number" id="offMinuteInput" min="0" max="59" value="0" disabled aria-label="OFF Minute"/></div>
+        <div class="schedule-form">
+            <label for="startTimeInput">From:</label>
+            <input type="time" id="startTimeInput" value="09:00">
+            <label for="endTimeInput">To:</label>
+            <input type="time" id="endTimeInput" value="17:00">
+            <label for="scheduleRecipeSelect">Recipe:</label>
+            <select id="scheduleRecipeSelect"></select>
+            <button id="addBlockBtn" disabled><i class="fa-solid fa-plus"></i> Add Block</button>
         </div>
-        <div class="schedule-setting-item">
-            <label for="activeRecipeSelect">Auto ON Recipe:</label>
-            <select id="activeRecipeSelect" disabled aria-label="Active ON Recipe"><option value="" disabled selected>Loading...</option></select>
+        <div class="button-group" style="justify-content: center;">
+            <button id="saveScheduleBtn" disabled><i class="fa-solid fa-save"></i> Save Schedule to Device</button>
+            <button id="clearScheduleBtn" disabled><i class="fa-solid fa-trash-can"></i> Clear All Blocks</button>
         </div>
-        <div class="button-group" style="margin-top: 20px; justify-content: center;">
-            <button id="applyScheduleBtn" disabled><i class="fa-solid fa-floppy-disk"></i> Save Times</button>
-            <button id="setActiveRecipeBtn" disabled><i class="fa-solid fa-star"></i> Set Auto Recipe</button>
-            <button id="enableAutoCycleBtn" disabled style="background-color: var(--success-color);"><i class="fa-solid fa-calendar-check"></i> Enable Auto-Cycle</button>
-            <button id="syncTimeBtn" disabled style="background-color: var(--secondary-color);"><i class="fa-solid fa-sync-alt"></i> Sync Pico Time</button>
-            <button id="requestSettingsBtn" disabled><i class="fa-solid fa-cloud-arrow-down"></i> Refresh Status</button>
-        </div>
-        <p id="scheduleStatus" class="schedule-info" style="margin-top: 15px; text-align: center;">Connect device to manage settings.</p>
-        <p id="picoTimeDisplay" class="pico-time-display" style="margin-top: 10px;">Pico Time: (Connect and Refresh)</p>
     </div>
 
     <!-- Custom Color Card -->
@@ -393,7 +382,7 @@
             <button id="applyCustomColor" disabled><i class="fa-solid fa-paint-brush"></i> Apply Color</button>
             <button id="saveRecipeBtn" disabled style="background-color: var(--success-color);"><i class="fa-solid fa-save"></i> Save as Recipe</button>
         </div>
-        <p class="schedule-info small-note" style="text-align: center; padding: 10px 0 0 0;">(Applying turns off auto-cycle)</p>
+        <p class="schedule-info small-note" style="text-align: center; padding: 10px 0 0 0;">(Applying turns off schedule)</p>
     </div>
 
     <!-- My Custom Recipes Section -->
@@ -411,9 +400,6 @@
 
     <!-- Footer -->
     <footer>
-         <p id="picoMemoryDisplayFooter" class="pico-memory-display-footer">
-              <i class="fa-solid fa-memory"></i> Pico Mem Free: <span>---</span>
-         </p>
          <p>PicoLight Controller | <a href="#" id="showHelp">Help</a> | <a href="https://github.com/mariocruz/" target="_blank" rel="noopener noreferrer">GitHub</a></p>
     </footer>
 </div> <!-- End Container -->
@@ -434,48 +420,46 @@
         <div class="help-content">
              <h3><i class="fa-solid fa-bluetooth-b"></i> Connection</h3>
             <ul>
-                <li>Click "Connect" (<i class="fa-brands fa-bluetooth-b"></i>). Select your "PicoLightSen" device.</li>
+                <li>Click "Connect" (<i class="fa-brands fa-bluetooth-b"></i>). Select your "Pico-..." device.</li>
                 <li>Click "Disconnect" (<i class="fa-solid fa-unlink"></i>) to end session.</li>
                 <li>Click (<i class="fa-solid fa-pencil"></i>) to give device a nickname (stored in browser).</li>
-                <li>Pico's free RAM shown in footer after connect/refresh.</li>
+                <li>Pico's free RAM and time are shown in the Sensor card after connect/refresh.</li>
                 <li>The page attempts to use the Screen Wake Lock API to prevent the display (and potentially system) from sleeping while connected and the tab is visible. This helps maintain the connection but is not guaranteed if you switch tabs or the OS overrides it.</li>
             </ul>
             <h3><i class="fa-solid fa-temperature-half"></i> Environmental Sensors</h3>
             <ul>
                 <li>Sensor availability depends on Pico's `config.py`.</li>
-                <li>All sensor data (Temp, Hum, CO2, Pressure, Lux) is now sent via a single "Combined Sensor Data" characteristic (UUID `a1b2...` unless changed) within the main Light Service (`19b1...`).</li>
-                <li>Values should update automatically via BLE Notifications from this combined characteristic.</li>
-                <li>Click the `°F`/`°C` button next to Temperature to toggle units (preference saved in browser).</li>
-                <li>Clicking "Refresh Sensor Data" (<i class="fa-solid fa-arrows-rotate"></i>) forces a read of this single combined characteristic.</li>
-                <li>"N/A" means sensor disabled/unavailable on Pico or value not yet received/parsed. "Error", "ParseErr", "ReadErr" indicate a communication or parsing problem. Check browser console (F12 -> Console) for details.</li>
+                <li>All sensor data (Temp, Hum, CO2, Pressure, Lux) is now sent via a single "Combined Sensor Data" characteristic.</li>
+                <li>Values should update automatically via BLE Notifications.</li>
+                <li>Click the `°F`/`°C` button next to Temperature to toggle units.</li>
+                <li>Clicking "Refresh All" (<i class="fa-solid fa-arrows-rotate"></i>) requests the current schedule, Pico time, free memory, and fresh sensor data.</li>
             </ul>
              <h3><i class="fa-solid fa-palette"></i> Light Control</h3>
              <ul>
-                <li><b>Recipes:</b> Click preset icon. Use category filters.</li>
+                <li><b>Recipes:</b> Click a preset icon to apply it immediately. Use category filters.</li>
                 <li><b>Custom:</b> Use sliders, then "Apply Color" (<i class="fa-solid fa-paint-brush"></i>).</li>
-                <li><b>Manual:</b> "Lights ON" (<i class="fa-solid fa-lightbulb"></i>) uses "Auto ON Recipe". "Lights OFF" (<i class="fa-solid fa-toggle-off"></i>) turns lights off.</li>
+                <li><b>Manual:</b> "Lights ON" (<i class="fa-solid fa-lightbulb"></i>) uses a default recipe. "Lights OFF" (<i class="fa-solid fa-toggle-off"></i>) turns lights off.</li>
                 <li><b>Save:</b> Click "Save as Recipe" (<i class="fa-solid fa-save"></i>) for custom color. Apply (<i class="fa-solid fa-play"></i>) or Delete (<i class="fa-solid fa-trash-can"></i>) from "My Custom Recipes".</li>
-                 <li>Lux is also available via its own characteristic (`f8a3...`) if needed for direct reading/notify, but is included in the combined string.</li>
-                <li><i class="fa-solid fa-triangle-exclamation" style="color: var(--warning-color);"></i> Applying any manual light setting disables Auto-Cycle.</li>
+                <li><i class="fa-solid fa-triangle-exclamation" style="color: var(--warning-color);"></i> Applying any manual light setting will override the schedule for that moment. The schedule will resume at the next block.</li>
             </ul>
-            <h3><i class="fa-solid fa-clock"></i> Auto-Cycle Schedule</h3>
+            <h3><i class="fa-solid fa-calendar-days"></i> Advanced Schedule Builder</h3>
             <ul>
-                <li>Set <b>ON/OFF Times</b> (HH:MM). Click "Save Times" (<i class="fa-solid fa-floppy-disk"></i>).</li>
-                <li>Select <b>Auto ON Recipe</b> (not 'Off'). Click "Set Auto Recipe" (<i class="fa-solid fa-star"></i>).</li>
-                <li>If Auto-Cycle is off (e.g., after manual control), click "Enable Auto-Cycle" (<i class="fa-solid fa-calendar-check"></i>) to turn it back on. The button will be disabled when auto-cycle is active.</li>
-                <li>Click "Sync Pico Time" (<i class="fa-solid fa-sync-alt"></i>) to match Pico clock to browser.</li>
-                <li>Click "Refresh Status" (<i class="fa-solid fa-cloud-arrow-down"></i>) for current settings/time/memory/auto-cycle state.</li>
-                <li>Pico's time shown after sync/refresh. Auto-cycle status shown in status text below buttons (e.g., "(Auto: ON)").</li>
+                <li>The Pico runs a schedule based on a series of time blocks.</li>
+                <li><b>Add Block:</b> Set a "From" time, "To" time, and a "Recipe" from the dropdown, then click "Add Block".</li>
+                <li><b>Overlaps:</b> The system does not prevent overlapping blocks. The Pico will likely use the last-defined block that matches the current time. It's best to avoid overlaps.</li>
+                <li><b>Delete Block:</b> Click the red '×' next to any block to remove it from the list.</li>
+                <li><b>Save Schedule:</b> After adding/deleting blocks, click "Save Schedule to Device" (<i class="fa-solid fa-save"></i>). This overwrites the entire schedule on the Pico.</li>
+                <li><b>Clear All:</b> Click "Clear All Blocks" (<i class="fa-solid fa-trash-can"></i>) to remove all blocks from the UI. You must then click "Save Schedule" to clear the device's schedule as well.</li>
+                <li><b>Refresh:</b> Use the "Refresh All" button in the Sensor card to load the current schedule from the Pico.</li>
             </ul>
-             <p><b>Note:</b> Auto-cycle runs based on Pico's state, toggled off by manual commands.</p>
+             <p><b>Note:</b> The schedule runs entirely on the Pico. This web UI is just for configuration.</p>
             <h3><i class="fa-solid fa-circle-question"></i> Troubleshooting</h3>
             <ul>
-                <li><b>Connection Drops:</b> Ensure device is in range. Check OS Power Settings (disable USB suspend, prevent Bluetooth sleep). Keep the browser tab visible (browsers often freeze background tabs). The Wake Lock API helps but isn't foolproof.</li>
+                <li><b>Connection Drops:</b> Ensure device is in range. Check OS Power Settings. Keep the browser tab visible.</li>
                 <li><b>Connection (General):</b> Check Pico power/code. Bluetooth/Location ON. Grant browser permissions. Refresh page. Restart Pico.</li>
                 <li><b>Commands:</b> Check browser console (F12 -> Console). Refresh page. Reconnect.</li>
-                 <li><b>Sensor Data "Error"/"---"/"ParseErr"/"ReadErr":</b> Check Pico `config.py` flags & sensor wiring. Check Pico serial output. Ensure the Combined Sensor UUID (`a1b2...`) matches between Pico and Web UI. Check console for specific errors (e.g., "NotFoundError" if combined char isn't found, or parsing errors).</li>
-                <li><b>Schedule:</b> "Refresh Status". Check "Enable Auto-Cycle" button state. "Sync Pico Time". Check Pico logs.</li>
-                <li><b>Memory Low:</b> Pico may be unstable. Reduce logging/features if needed.</li>
+                 <li><b>Sensor Data "Error"/"---":</b> Check Pico `config.py` flags & sensor wiring. Check Pico serial output.</li>
+                <li><b>Schedule Not Working:</b> After saving, click "Refresh All" to confirm it was received. "Sync Pico Time" to ensure the device clock is correct. Check Pico logs for errors.</li>
             </ul><hr><p style="text-align:center; font-size: 0.9em;">PicoLight Controller Web UI</p>
         </div>
     </div>
@@ -483,40 +467,39 @@
 
 <script>
     // --- Constants and Configuration ---
-    const SERVICE_UUID = "19b10000-e8f2-537e-4f6c-d104768a1214"; // Custom Light Service
+    const SERVICE_UUID = "19b10000-e8f2-537e-4f6c-d104768a1214";
     const RECIPE_CHAR_UUID = "19b10001-e8f2-537e-4f6c-d104768a1214";
     const CUSTOM_CHAR_UUID = "19b10002-e8f2-537e-4f6c-d104768a1214";
     const CONTROL_CHAR_UUID = "19b10003-e8f2-537e-4f6c-d104768a1214";
-    const ILLUMINANCE_CHAR_UUID = "f8a3b2c1-d4e5-4f67-8a9b-c1d2e3f4a501"; // Custom UUID (under Light Svc)
-    // *** Combined Sensor Characteristic UUID (MUST MATCH config.py) ***
-    const COMBINED_SENSOR_CHAR_UUID = "a1b2c3d4-e5f6-4789-a0b1-c2d3e4f5a601"; // Replace with your generated UUID
-    const TEMP_UNIT_PREF_KEY = 'picolight-temp-unit'; // Key for localStorage
+    const COMBINED_SENSOR_CHAR_UUID = "a1b2c3d4-e5f6-4789-a0b1-c2d3e4f5a601";
+    const SCHEDULE_CHAR_UUID = "12345678-1234-1234-1234-123456789abd";
+    const TEMP_UNIT_PREF_KEY = 'picolight-temp-unit';
 
-    const recipes = ["balanced","warm","cool","daylight","veg_growth","bloom","seedling","succulent","purple_glow","sunrise","sunset","forest","aquarium","night_light","inspection","off"];
-    const recipeColors = { balanced:"rgb(255,64,128)",warm:"rgb(255,140,20)",cool:"rgb(180,200,255)",daylight:"rgb(255,230,210)",veg_growth:"rgb(50,255,70)",bloom:"rgb(255,100,10)",seedling:"rgb(100,100,200)",succulent:"rgb(220,180,40)",purple_glow:"rgb(180,0,255)",sunrise:"rgb(255,50,20)",sunset:"rgb(255,30,0)",forest:"rgb(30,200,30)",aquarium:"rgb(0,200,255)",night_light:"rgb(50,20,0)",inspection:"rgb(255,255,255)",off:"rgb(50,50,50)" };
+    const RECIPE_DEFINITIONS = {
+        'off': { name: 'Off', code: 0, color: "rgb(50,50,50)" }, 'warm': { name: 'Warm', code: 1, color: "rgb(255,140,20)" },
+        'cool': { name: 'Cool', code: 2, color: "rgb(180,200,255)" }, 'aquarium': { name: 'Aquarium', code: 3, color: "rgb(0,200,255)" },
+        'veg_growth': { name: 'Veg Growth', code: 4, color: "rgb(50,255,70)" }, 'sunset': { name: 'Sunset', code: 5, color: "rgb(255,30,0)" },
+        'balanced': { name: 'Balanced', code: 6, color: "rgb(255,64,128)" }, 'daylight': { name: 'Daylight', code: 7, color: "rgb(255,230,210)" },
+        'bloom': { name: 'Bloom', code: 8, color: "rgb(255,100,10)" }, 'seedling': { name: 'Seedling', code: 9, color: "rgb(100,100,200)" },
+        'succulent': { name: 'Succulent', code: 10, color: "rgb(220,180,40)" }, 'purple_glow': { name: 'Purple Glow', code: 11, color: "rgb(180,0,255)" },
+        'sunrise': { name: 'Sunrise', code: 12, color: "rgb(255,50,20)" }, 'forest': { name: 'Forest', code: 13, color: "rgb(30,200,30)" },
+        'night_light': { name: 'Night Light', code: 14, color: "rgb(50,20,0)" }, 'inspection': { name: 'Inspection', code: 15, color: "rgb(255,255,255)" },
+    };
+    const recipes = Object.keys(RECIPE_DEFINITIONS);
+    const CODE_TO_RECIPE_MAP = Object.fromEntries(Object.entries(RECIPE_DEFINITIONS).map(([key, val]) => [val.code, key]));
     const recipeCategories = { balanced:"basic",warm:"basic",cool:"basic",daylight:"basic",inspection:"basic",night_light:"basic",off:"basic",veg_growth:"plant",bloom:"plant",seedling:"plant",succulent:"plant",forest:"plant",purple_glow:"mood",sunrise:"mood",sunset:"mood",aquarium:"mood" };
 
-    // Command Codes
-    const CMD_SET_OFF = 0, CMD_SET_ON_ACTIVE_RECIPE = 1, CMD_TOGGLE_AUTO_CYCLE = 2; // Toggle used for Enable button
-    const CMD_REQUEST_SETTINGS = 12, CMD_SET_ACTIVE_RECIPE_IDX = 13, CMD_SET_ON_TIME = 14, CMD_SET_OFF_TIME = 15;
-    const CMD_REQUEST_STATUS = 20, CMD_SET_RTC_TIME = 30;
+    const CMD_SET_OFF = 0, CMD_SET_ON_ACTIVE_RECIPE = 1;
+    const CMD_REQUEST_SETTINGS = 12, CMD_SET_RTC_TIME = 30;
+    const NTF_ERROR_INVALID_COMMAND = 101, NTF_STATUS_UPDATE = 120, NTF_MEMORY_UPDATE = 121, NTF_TIME_UPDATE = 131;
+    const NTF_SCHEDULE_DATA = 140;
 
-    // Notification Codes
-    const NTF_ACK_COMMAND_RECEIVED = 100, NTF_ERROR_INVALID_COMMAND = 101, NTF_AUTO_CYCLE_ENABLED = 102, NTF_AUTO_CYCLE_DISABLED = 103;
-    const NTF_SETTINGS_UPDATE = 113, NTF_STATUS_UPDATE = 120, NTF_MEMORY_UPDATE = 121, NTF_TIME_UPDATE = 131;
-
-    // --- Global Variables ---
     let bleDevice = null, bleServer = null;
     let recipeCharacteristic = null, customCharacteristic = null, controlCharacteristic = null;
-    let illuminanceCharacteristic = null;
-    let combinedSensorCharacteristic = null;
-    let customRecipes = [], savedDevices = [];
-    let connectInProgress = false;
-    let currentTempUnit = 'C';
-    let wakeLock = null;
-    let isAutoCycleEnabled = false; // Track Auto-Cycle state
+    let combinedSensorCharacteristic = null, scheduleCharacteristic = null;
+    let customRecipes = [], savedDevices = [], scheduleBlocks = [];
+    let connectInProgress = false, currentTempUnit = 'C', wakeLock = null;
 
-    // --- DOM Element References ---
     const connectButton = document.getElementById("connectButton");
     const connectionStatus = document.getElementById("connectionStatus");
     const connectedDeviceInfo = document.getElementById('connectedDeviceInfo');
@@ -530,43 +513,18 @@
     const saveRecipeBtn = document.getElementById("saveRecipeBtn");
     const customRecipesGrid = document.getElementById("customRecipesGrid");
     const clearRecipesBtn = document.getElementById("clearRecipesBtn");
-    const onHourInput = document.getElementById('onHourInput'), onMinuteInput = document.getElementById('onMinuteInput');
-    const offHourInput = document.getElementById('offHourInput'), offMinuteInput = document.getElementById('offMinuteInput');
-    const activeRecipeSelect = document.getElementById('activeRecipeSelect');
-    const applyScheduleBtn = document.getElementById('applyScheduleBtn'), setActiveRecipeBtn = document.getElementById('setActiveRecipeBtn');
-    const requestSettingsBtn = document.getElementById('requestSettingsBtn'), syncTimeBtn = document.getElementById('syncTimeBtn');
-    const enableAutoCycleBtn = document.getElementById('enableAutoCycleBtn'); // Ref for new button
-    const scheduleStatus = document.getElementById('scheduleStatus'), picoTimeDisplay = document.getElementById('picoTimeDisplay');
     const lightsOnBtn = document.getElementById("lightsOnBtn"), lightsOffBtn = document.getElementById("lightsOffBtn");
     const toastElement = document.getElementById("toast"), spinnerOverlay = document.getElementById('spinnerOverlay'), spinnerText = document.getElementById('spinnerText');
     const themeToggle = document.getElementById("themeToggle"), showHelpBtn = document.getElementById("showHelp"), helpOverlay = document.getElementById("helpOverlay"), closeHelpBtn = document.getElementById("closeHelp");
-    const sensorTempDisplay = document.getElementById('sensorTemp');
-    const sensorTempUnit = document.getElementById('sensorTempUnit');
-    const tempUnitToggle = document.getElementById('tempUnitToggle');
-    const sensorHumidDisplay = document.getElementById('sensorHumid');
-    const sensorCO2Display = document.getElementById('sensorCO2');
-    const sensorPressureDisplay = document.getElementById('sensorPressure');
-    const sensorLuxDisplay = document.getElementById('sensorLux');
-    const refreshSensorBtn = document.getElementById('refreshSensorBtn');
-    const picoMemoryDisplayFooter = document.getElementById('picoMemoryDisplayFooter').querySelector('span');
+    const sensorTempDisplay = document.getElementById('sensorTemp'), sensorTempUnit = document.getElementById('sensorTempUnit'), tempUnitToggle = document.getElementById('tempUnitToggle');
+    const sensorHumidDisplay = document.getElementById('sensorHumid'), sensorCO2Display = document.getElementById('sensorCO2'), sensorPressureDisplay = document.getElementById('sensorPressure'), sensorLuxDisplay = document.getElementById('sensorLux');
+    const refreshStatusBtn = document.getElementById('refreshStatusBtn'), syncTimeBtn = document.getElementById('syncTimeBtn');
+    const picoTimeDisplay = document.getElementById('picoTimeDisplay'), picoMemoryDisplay = document.getElementById('picoMemoryDisplay');
+    const scheduleBlockList = document.getElementById('scheduleBlockList'), startTimeInput = document.getElementById('startTimeInput'), endTimeInput = document.getElementById('endTimeInput'), scheduleRecipeSelect = document.getElementById('scheduleRecipeSelect');
+    const addBlockBtn = document.getElementById('addBlockBtn'), saveScheduleBtn = document.getElementById('saveScheduleBtn'), clearScheduleBtn = document.getElementById('clearScheduleBtn');
 
-    // --- Utility Functions ---
-    async function retryBleOperation(operation, operationName = 'BLE Operation', maxAttempts = 2, delayMs = 300) {
-        let lastError;
-        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-            try { return await operation(); }
-            catch (error) {
-                console.warn(`${operationName} attempt ${attempt}/${maxAttempts} failed:`, error.name, error.message);
-                lastError = error;
-                if (error.name === 'NotFoundError' || error.name === 'NotAllowedError' || error.name === 'NotSupportedError') break;
-                if (attempt < maxAttempts) { await new Promise(resolve => setTimeout(resolve, delayMs)); }
-            }
-        }
-        console.error(`${operationName} failed after ${maxAttempts} attempts.`); throw lastError;
-    }
-    function initialize() { console.log("PicoLight UI Initializing..."); savedDevices = loadSavedDevices(); customRecipes = loadCustomRecipes(); loadThemePreference(); loadTempUnitPreference(); populateRecipeGrid(); populateActiveRecipeSelect(); displayCustomRecipes(); setupEventListeners(); disableUIControls(); checkBluetoothSupport(); console.log("Initialization Complete."); }
+    function initialize() { console.log("PicoLight UI Initializing..."); savedDevices = loadSavedDevices(); customRecipes = loadCustomRecipes(); loadThemePreference(); loadTempUnitPreference(); populateRecipeGrid(); populateRecipeSelect(); renderScheduleBlocks(); displayCustomRecipes(); setupEventListeners(); disableUIControls(); checkBluetoothSupport(); console.log("Initialization Complete."); }
     function checkBluetoothSupport() { if (!navigator.bluetooth) { showToast("Web Bluetooth API not supported!", 10000); connectButton.disabled = true; connectButton.innerHTML = '<i class="fa-solid fa-times-circle"></i> No BT Support'; } }
-    function populateActiveRecipeSelect() { activeRecipeSelect.innerHTML='<option value="" disabled selected>Select Recipe...</option>'; recipes.forEach((n, i) => { if (n !== 'off') { const o=document.createElement("option"); o.value=i; o.textContent=n.replace(/_/g," ").replace(/\b\w/g, l=>l.toUpperCase()); activeRecipeSelect.appendChild(o); } }); }
     function setupEventListeners() {
         connectButton.addEventListener("click", attemptConnect);
         renameConnectedDeviceBtn.addEventListener('click', handleRenameConnectedDevice);
@@ -581,40 +539,30 @@
         applyCustomColor.addEventListener("click", applyCustomColorHandler);
         saveRecipeBtn.addEventListener("click", saveCustomRecipe);
         clearRecipesBtn.addEventListener("click", clearCustomRecipes);
-        applyScheduleBtn.addEventListener('click', applyScheduleTimeHandler);
-        setActiveRecipeBtn.addEventListener('click', setActiveRecipeHandler);
-        requestSettingsBtn.addEventListener('click', requestCurrentStatusAndSettings);
+        refreshStatusBtn.addEventListener('click', requestCurrentStatusAndSettings);
         syncTimeBtn.addEventListener('click', sendTimeToPico);
-        enableAutoCycleBtn.addEventListener('click', enableAutoCycleHandler); // Listener for Enable Auto Cycle
-        onHourInput.addEventListener('input',()=>validateTimeInput(onHourInput,23));
-        onMinuteInput.addEventListener('input',()=>validateTimeInput(onMinuteInput,59));
-        offHourInput.addEventListener('input',()=>validateTimeInput(offHourInput,23));
-        offMinuteInput.addEventListener('input',()=>validateTimeInput(offMinuteInput,59));
-        refreshSensorBtn.addEventListener('click', readSensorData);
         tempUnitToggle.addEventListener('click', toggleTemperatureUnit);
-        document.addEventListener('visibilitychange', handleVisibilityChange); // Listener for Wake Lock re-acquire
+        addBlockBtn.addEventListener('click', handleAddBlock);
+        saveScheduleBtn.addEventListener('click', handleSaveSchedule);
+        clearScheduleBtn.addEventListener('click', handleClearSchedule);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
     }
-    function validateTimeInput(el, max) { try { if(el.value==='')return; let v=parseInt(el.value); if(isNaN(v)){el.value=''; return;} if(v<0)el.value=0; if(v>max)el.value=max;}catch(e){console.error("Time validation error:",e);el.value=(max===23)?8:0;}}
     function disableUIControls() {
         document.querySelectorAll("button, input, select").forEach(el => {
-             // Ensure the temp toggle AND enable auto cycle are included here
-             if (!['themeToggle', 'showHelp', 'closeHelp', 'connectButton', 'tempUnitToggle', 'enableAutoCycleBtn'].includes(el.id)) {
+             if (!['themeToggle', 'showHelp', 'closeHelp', 'connectButton', 'tempUnitToggle'].includes(el.id)) {
                  el.disabled = true;
              }
         });
         tempUnitToggle.disabled = true;
-        enableAutoCycleBtn.disabled = true; // Disable initially
         renameConnectedDeviceBtn.disabled = true;
-        refreshSensorBtn.disabled = true;
-        displayTemperature(null, true); // Reset temp display
+        displayTemperature(null, true);
         updateSensorDisplay(sensorHumidDisplay, '---', '%');
         updateSensorDisplay(sensorCO2Display, '---', 'ppm');
         updateSensorDisplay(sensorPressureDisplay, '---', 'hPa');
         updateSensorDisplay(sensorLuxDisplay, '---', 'lux');
-        scheduleStatus.textContent = "Connect device to manage settings.";
-        picoTimeDisplay.textContent = "Pico Time: (Offline)";
-        picoMemoryDisplayFooter.textContent = '---';
-        activeRecipeSelect.value = "";
+        picoTimeDisplay.textContent = "--:--:--";
+        picoMemoryDisplay.textContent = "---";
+        scheduleBlocks = []; renderScheduleBlocks();
         resetColorSliders();
         connectButton.innerHTML = '<i class="fa-brands fa-bluetooth-b"></i> Connect';
         connectButton.disabled = !navigator.bluetooth;
@@ -623,31 +571,27 @@
         connectionStatus.className = "status-badge status-disconnected";
         document.querySelectorAll('.recipe-card .recipe-button:not(.delete-btn)').forEach(btn => btn.disabled = true);
         connectInProgress = false;
-        isAutoCycleEnabled = false; // Reset state
     }
     function enableUIControls() {
         if (bleDevice && bleDevice.gatt.connected) {
             document.querySelectorAll("button, input, select").forEach(el => {
-                if (!['themeToggle', 'showHelp', 'closeHelp', 'enableAutoCycleBtn'].includes(el.id)) { // Exclude enable button initially
+                if (!['themeToggle', 'showHelp', 'closeHelp'].includes(el.id)) {
                     el.disabled = false;
                 }
             });
-            // Specific handling for Enable button based on state
-            enableAutoCycleBtn.disabled = isAutoCycleEnabled;
-            tempUnitToggle.disabled = false; // Enable C/F toggle
+            tempUnitToggle.disabled = false;
             connectButton.innerHTML = '<i class="fa-solid fa-unlink"></i> Disconnect';
             connectButton.disabled = false;
             renameConnectedDeviceBtn.disabled = false;
             clearRecipesBtn.disabled = (customRecipes.length === 0);
-            refreshSensorBtn.disabled = false;
             connectedDeviceInfo.style.display = 'flex';
             connectionStatus.textContent = "Connected";
             connectionStatus.className = "status-badge status-connected";
             document.querySelectorAll('.recipe-card .recipe-button:not(.delete-btn)').forEach(btn => btn.disabled = false);
+            renderScheduleBlocks();
         } else {
-            disableUIControls(); // Fallback if not connected
+            disableUIControls();
         }
-        // Ensure these are always enabled
         themeToggle.disabled = false;
         showHelpBtn.disabled = false;
     }
@@ -674,9 +618,27 @@
     function releaseWakeLock() { if (wakeLock !== null && wakeLock.released === false) { wakeLock.release().then(() => { console.log('Screen Wake Lock released manually.'); wakeLock = null; }).catch((err) => { console.error(`Wake Lock release failed: ${err.name}, ${err.message}`); }); } }
     async function handleVisibilityChange() { if (wakeLock === null && document.visibilityState === 'visible' && bleDevice && bleDevice.gatt.connected) { console.log("Tab became visible, attempting to re-acquire Wake Lock..."); await requestWakeLock(); } else if (document.visibilityState !== 'visible' && wakeLock !== null) { console.log("Tab hidden, Wake Lock may be released by browser."); } }
 
-    // --- Bluetooth Connection & Communication ---
     function attemptConnect(){ if(connectInProgress)return showToast("Connection attempt in progress..."); if(bleDevice&&bleDevice.gatt.connected){console.log("Disconnecting...");showSpinner("Disconnecting..."); releaseWakeLock(); bleDevice.gatt.disconnect();}else{startDeviceDiscovery();} }
-    async function startDeviceDiscovery(){ if(!navigator.bluetooth){showToast("Web Bluetooth not available.",5000);return;} console.log("Requesting BT device..."); connectInProgress=true; showSpinner("Waiting for device selection..."); try{ const d=await navigator.bluetooth.requestDevice({ filters:[{namePrefix:'PicoLightSen'}], optionalServices:[SERVICE_UUID] }); console.log("Device selected:",d.name,d.id); bleDevice=d; await connectToSelectedDevice(); }catch(e){ console.error("BT selection/conn error:",e); hideSpinner(); let m=`BT Error: ${e.message}`; if(e.name==='NotFoundError'){m="No compatible PicoLight device selected or found. Ensure ON & advertising.";}else if(e.name==='NotAllowedError'){m="Bluetooth access denied. Check permissions.";} showToast(m,5000); if(!bleDevice||!bleDevice.gatt.connected){onDisconnected();} }finally{connectInProgress=false;} }
+    async function startDeviceDiscovery(){
+        if(!navigator.bluetooth){showToast("Web Bluetooth not available.",5000);return;}
+        console.log("Requesting BT device...");
+        connectInProgress=true;
+        showSpinner("Waiting for device selection...");
+        try{
+            const d=await navigator.bluetooth.requestDevice({ filters:[{namePrefix:'Pico-'}], optionalServices:[SERVICE_UUID] });
+            console.log("Device selected:",d.name,d.id);
+            bleDevice=d;
+            await connectToSelectedDevice();
+        }catch(e){
+            console.error("BT selection/conn error:",e);
+            hideSpinner();
+            let m=`BT Error: ${e.message}`;
+            if(e.name==='NotFoundError'){m="No compatible Pico device selected or found. Ensure ON & advertising.";}
+            else if(e.name==='NotAllowedError'){m="Bluetooth access denied. Check permissions.";}
+            showToast(m,5000);
+            if(!bleDevice||!bleDevice.gatt.connected){onDisconnected();}
+        }finally{connectInProgress=false;}
+    }
     async function connectToSelectedDevice(){
         if(!bleDevice)throw new Error("No device selected.");
         const dDN=getDeviceDisplayName(bleDevice.id);
@@ -689,78 +651,81 @@
             bleServer=await bleDevice.gatt.connect();
             console.log("GATT Connected.");
             recipeCharacteristic = null; customCharacteristic = null; controlCharacteristic = null;
-            illuminanceCharacteristic = null; combinedSensorCharacteristic = null;
+            combinedSensorCharacteristic = null; scheduleCharacteristic = null;
             console.log("Getting Light Service & Characteristics...");
             const lS=await bleServer.getPrimaryService(SERVICE_UUID);
-            const lightCharPromises = [ lS.getCharacteristic(RECIPE_CHAR_UUID).catch(e => { console.warn("Recipe char discovery failed:", e.name); return null; }), lS.getCharacteristic(CUSTOM_CHAR_UUID).catch(e => { console.warn("Custom char discovery failed:", e.name); return null; }), lS.getCharacteristic(CONTROL_CHAR_UUID).catch(e => { console.warn("Control char discovery failed:", e.name); return null; }), lS.getCharacteristic(ILLUMINANCE_CHAR_UUID).catch(e => { console.warn("Illuminance char discovery failed:", e.name); return null; }), lS.getCharacteristic(COMBINED_SENSOR_CHAR_UUID).catch(e => { console.warn("Combined Sensor char discovery failed:", e.name); return null; }) ];
-            const lightResults = await Promise.allSettled(lightCharPromises);
-            recipeCharacteristic = lightResults[0].status === 'fulfilled' ? lightResults[0].value : null;
-            customCharacteristic = lightResults[1].status === 'fulfilled' ? lightResults[1].value : null;
-            controlCharacteristic = lightResults[2].status === 'fulfilled' ? lightResults[2].value : null;
-            illuminanceCharacteristic = lightResults[3].status === 'fulfilled' ? lightResults[3].value : null;
-            combinedSensorCharacteristic = lightResults[4].status === 'fulfilled' ? lightResults[4].value : null;
-            if(recipeCharacteristic) console.log("-> Recipe Char OK"); if(customCharacteristic) console.log("-> Custom Char OK"); if(controlCharacteristic) console.log("-> Control Char OK"); if(illuminanceCharacteristic) console.log("-> Illuminance Char OK"); if(combinedSensorCharacteristic) console.log("-> Combined Sensor Char OK");
+            const charPromises = [
+                lS.getCharacteristic(RECIPE_CHAR_UUID).catch(e => { console.warn("Recipe char discovery failed:", e.name); return null; }),
+                lS.getCharacteristic(CUSTOM_CHAR_UUID).catch(e => { console.warn("Custom char discovery failed:", e.name); return null; }),
+                lS.getCharacteristic(CONTROL_CHAR_UUID).catch(e => { console.warn("Control char discovery failed:", e.name); return null; }),
+                lS.getCharacteristic(COMBINED_SENSOR_CHAR_UUID).catch(e => { console.warn("Combined Sensor char discovery failed:", e.name); return null; }),
+                lS.getCharacteristic(SCHEDULE_CHAR_UUID).catch(e => { console.warn("Schedule char discovery failed:", e.name); return null; })
+            ];
+            const results = await Promise.allSettled(charPromises);
+            recipeCharacteristic = results[0].status === 'fulfilled' ? results[0].value : null;
+            customCharacteristic = results[1].status === 'fulfilled' ? results[1].value : null;
+            controlCharacteristic = results[2].status === 'fulfilled' ? results[2].value : null;
+            combinedSensorCharacteristic = results[3].status === 'fulfilled' ? results[3].value : null;
+            scheduleCharacteristic = results[4].status === 'fulfilled' ? results[4].value : null;
+
+            if(recipeCharacteristic) console.log("-> Recipe Char OK"); if(customCharacteristic) console.log("-> Custom Char OK"); if(controlCharacteristic) console.log("-> Control Char OK"); if(combinedSensorCharacteristic) console.log("-> Combined Sensor Char OK"); if(scheduleCharacteristic) console.log("-> Schedule Char OK");
             if (!controlCharacteristic || !controlCharacteristic.properties.notify) { throw new Error("Control characteristic unusable."); }
-            console.log("Starting Control Notifications...");
+
             await controlCharacteristic.startNotifications();
-            controlCharacteristic.removeEventListener('characteristicvaluechanged', handleControlNotification);
             controlCharacteristic.addEventListener('characteristicvaluechanged', handleControlNotification);
             controlCharacteristic.listening = true;
             console.log("Control Notifications OK.");
-            if (combinedSensorCharacteristic && combinedSensorCharacteristic.properties.notify) { console.log("Starting Combined Sensor Notifications..."); await combinedSensorCharacteristic.startNotifications(); combinedSensorCharacteristic.removeEventListener('characteristicvaluechanged', handleCombinedSensorNotification); combinedSensorCharacteristic.addEventListener('characteristicvaluechanged', handleCombinedSensorNotification); combinedSensorCharacteristic.listening = true; console.log("-> Combined Sensor Notifications Started."); } else { console.warn("-> Combined Sensor characteristic missing or does not support notify."); }
+            if (combinedSensorCharacteristic && combinedSensorCharacteristic.properties.notify) { await combinedSensorCharacteristic.startNotifications(); combinedSensorCharacteristic.addEventListener('characteristicvaluechanged', handleCombinedSensorNotification); combinedSensorCharacteristic.listening = true; console.log("-> Combined Sensor Notifications Started."); }
+
             saveDeviceToMemory(bleDevice, SERVICE_UUID);
             connectedDeviceName.textContent=dDN;
-            isAutoCycleEnabled = false; // Assume disabled until status is confirmed
-            enableUIControls(); // Enable buttons, will set EnableAuto based on isAutoCycleEnabled
+            enableUIControls();
             await requestWakeLock();
             showToast(`Connected to ${dDN}`);
             hideSpinner();
-            requestCurrentStatusAndSettings(); // Get initial state including auto-cycle
-            await readSensorData();
+            requestCurrentStatusAndSettings();
         } catch(e){console.error("BT Conn Error:",e);hideSpinner();showToast(`Conn failed: ${e.message}`,5000); releaseWakeLock(); if(bleDevice&&bleDevice.gatt.connected){bleDevice.gatt.disconnect();}else{onDisconnected();}throw e;}
     }
 
-    // --- Sensor Data Processing Functions ---
     function displayTemperature(celsiusValue, forceResetText = false) { if (!sensorTempDisplay || !sensorTempUnit) return; if (forceResetText) { sensorTempDisplay.textContent = '---'; sensorTempDisplay.classList.remove('error-text'); sensorTempDisplay.removeAttribute('data-raw-value-c'); sensorTempUnit.textContent = `°${currentTempUnit}`; return; } if (celsiusValue === null || typeof celsiusValue !== 'number' || isNaN(celsiusValue)) { sensorTempDisplay.textContent = 'N/A'; sensorTempDisplay.classList.add('error-text'); sensorTempDisplay.removeAttribute('data-raw-value-c'); sensorTempUnit.textContent = `°${currentTempUnit}`; } else { sensorTempDisplay.dataset.rawValueC = celsiusValue.toFixed(2); sensorTempDisplay.classList.remove('error-text'); let displayValue; if (currentTempUnit === 'F') { const fahrenheitValue = celsiusToFahrenheit(celsiusValue); displayValue = fahrenheitValue !== null ? fahrenheitValue.toFixed(1) : 'Err'; sensorTempUnit.textContent = '°F'; } else { displayValue = celsiusValue.toFixed(1); sensorTempUnit.textContent = '°C'; } sensorTempDisplay.textContent = displayValue; } updateTempToggleButtonVisuals(); }
     function updateSensorDisplay(element, valueStr, unit) { if (!element) return; if (element.id === 'sensorTemp') return; const unitSpan = element.nextElementSibling; if (valueStr === null || valueStr === undefined || valueStr.trim() === "" || valueStr.toUpperCase() === "N/A" || valueStr.toUpperCase() === "READING...") { element.textContent = (valueStr !== null && valueStr.toUpperCase() === "READING...") ? 'Reading...' : 'N/A'; element.classList.toggle('error-text', valueStr !== null && valueStr.toUpperCase() !== "READING..."); if (unitSpan && unitSpan.classList.contains('sensor-unit')) unitSpan.textContent = ''; } else { const numValue = parseFloat(valueStr); if (!isNaN(numValue)) { if (element.id === 'sensorHumid') { element.textContent = numValue.toFixed(1); } else if (element.id === 'sensorPressure') { element.textContent = numValue.toFixed(0); } else if (element.id === 'sensorCO2' || element.id === 'sensorLux') { element.textContent = numValue.toFixed(0); } else { element.textContent = valueStr; } element.classList.remove('error-text'); if (unitSpan && unitSpan.classList.contains('sensor-unit')) unitSpan.textContent = unit; } else { element.textContent = 'ParseErr'; element.classList.add('error-text'); if (unitSpan && unitSpan.classList.contains('sensor-unit')) unitSpan.textContent = ''; console.warn(`Could not parse sensor value: "${valueStr}" for element ${element.id}`); } } }
     function showParsingErrorOnAllSensors(message = 'ParseErr') { if (sensorTempDisplay && sensorTempUnit) { sensorTempDisplay.textContent = message; sensorTempDisplay.classList.add('error-text'); sensorTempUnit.textContent = `°${currentTempUnit}`; sensorTempDisplay.removeAttribute('data-raw-value-c'); } updateSensorDisplay(sensorHumidDisplay, message, ''); updateSensorDisplay(sensorCO2Display, message, ''); updateSensorDisplay(sensorPressureDisplay, message, ''); updateSensorDisplay(sensorLuxDisplay, message, ''); }
     function handleCombinedSensorNotification(event) { const value = event.target.value; if (event.target.uuid !== COMBINED_SENSOR_CHAR_UUID) return; try { const decoder = new TextDecoder('utf-8'); const sensorString = decoder.decode(value); const parts = sensorString.split(','); if (parts.length === 5) { const tempStr = parts[0]; const tempC = (tempStr === null || tempStr.toUpperCase() === 'N/A' || tempStr.trim() === '') ? null : parseFloat(tempStr); displayTemperature(isNaN(tempC) ? null : tempC); updateSensorDisplay(sensorHumidDisplay, parts[1], '%'); updateSensorDisplay(sensorCO2Display, parts[2], 'ppm'); updateSensorDisplay(sensorPressureDisplay, parts[3], 'hPa'); updateSensorDisplay(sensorLuxDisplay, parts[4], 'lux'); } else { console.error(`Combined sensor notify string parts error (${parts.length}): "${sensorString}"`); showParsingErrorOnAllSensors('FormatErr'); } } catch (e) { console.error(`Error processing combined sensor notify:`, e); showParsingErrorOnAllSensors('ParseErr'); } }
 
-    // --- Control Characteristic Notification Handler ---
     function handleControlNotification(evt){
         const v=evt.target.value; if(!v||v.byteLength===0) return;
         const dV=new DataView(v.buffer); const nC=dV.getUint8(0); const pL=v.byteLength-1;
         console.log(`Control Notify RX - Code:${nC}, Len:${v.byteLength}`);
         try{
             switch(nC){
-                case NTF_SETTINGS_UPDATE:
-                    if(pL>=5){ const onH=dV.getUint8(1),onM=dV.getUint8(2),offH=dV.getUint8(3),offM=dV.getUint8(4),aRI=dV.getUint8(5); console.log(`Settings RX: ON=${formatTime(onH,onM)}, OFF=${formatTime(offH,offM)}, RecipeIdx=${aRI}`); onHourInput.value=onH;onMinuteInput.value=onM;offHourInput.value=offH;offMinuteInput.value=offM; activeRecipeSelect.value=aRI; const rN=(aRI>=0&&aRI<recipes.length)?recipes[aRI]:'Unknown'; let currentStatusText = `Sched: ON ${formatTime(onH,onM)}, OFF ${formatTime(offH,offM)} | Auto Recipe: ${rN.replace(/_/g," ")}`; scheduleStatus.textContent = currentStatusText; /* Status will be updated by auto-cycle notify if it follows */ enableUIControls(); hideSpinner(); showToast("Pico settings updated"); } // Refresh UI state after settings update
-                    else{console.warn(`Incomplete Settings notify. Len:${v.byteLength}`);}
-                    break;
-                case NTF_AUTO_CYCLE_ENABLED:
-                    console.log("Auto Cycle ENABLED notify received.");
-                    isAutoCycleEnabled = true;
-                    scheduleStatus.textContent = scheduleStatus.textContent.replace(/ \(Auto: (ON|OFF)\)|$/, '') + " (Auto: ON)";
-                    if (bleDevice && bleDevice.gatt.connected) { enableAutoCycleBtn.disabled = true; }
-                    hideSpinner(); showToast("Auto Cycle Enabled");
-                    break;
-                case NTF_AUTO_CYCLE_DISABLED:
-                    console.log("Auto Cycle DISABLED notify received.");
-                    isAutoCycleEnabled = false;
-                    scheduleStatus.textContent = scheduleStatus.textContent.replace(/ \(Auto: (ON|OFF)\)|$/, '') + " (Auto: OFF)";
-                    if (bleDevice && bleDevice.gatt.connected) { enableAutoCycleBtn.disabled = false; }
-                    hideSpinner(); showToast("Auto Cycle Disabled");
+                case NTF_SCHEDULE_DATA:
+                    if (pL >= 2) {
+                        const numBlocks = dV.getUint8(2);
+                        const receivedBlocks = [];
+                        for (let i = 0; i < numBlocks; i++) {
+                            const offset = 3 + i * 6;
+                            if (dV.byteLength < offset + 6) { console.warn("Schedule data packet truncated."); break; }
+                            const startH = dV.getUint8(offset), startM = dV.getUint8(offset + 1);
+                            const endH = dV.getUint8(offset + 2), endM = dV.getUint8(offset + 3);
+                            const recipeCode = dV.getUint8(offset + 4), enabled = dV.getUint8(offset + 5) === 1;
+                            receivedBlocks.push({ startTime: formatTime(startH, startM), endTime: formatTime(endH, endM), recipe: CODE_TO_RECIPE_MAP[recipeCode] || 'off', enabled: enabled });
+                        }
+                        scheduleBlocks = receivedBlocks;
+                        renderScheduleBlocks();
+                        showToast(`Loaded ${numBlocks} schedule blocks from device.`);
+                        hideSpinner();
+                    }
                     break;
                 case NTF_STATUS_UPDATE:
                     if(pL>=4){ const r=dV.getUint8(1),g=dV.getUint8(2),b=dV.getUint8(3),w=dV.getUint8(4); redSlider.value=r;greenSlider.value=g;blueSlider.value=b;whiteSlider.value=w; updateColorPreview(); }
                     else{console.warn(`Incomplete Color Status notify. Len:${v.byteLength}`);}
                     break;
                 case NTF_MEMORY_UPDATE:
-                    if(pL>=4){ const mB=dV.getUint32(1,true); picoMemoryDisplayFooter.textContent=`${(mB/1024).toFixed(1)} KB`; }
-                    else{console.warn(`Incomplete Memory notify. Len:${v.byteLength}`);picoMemoryDisplayFooter.textContent='Error';}
+                    if(pL>=4){ const mB=dV.getUint32(1,true); picoMemoryDisplay.textContent=`${(mB/1024).toFixed(1)}`; }
+                    else{console.warn(`Incomplete Memory notify. Len:${v.byteLength}`);picoMemoryDisplay.textContent='Error';}
                     break;
                 case NTF_TIME_UPDATE:
-                    if(pL>=8){ const y=dV.getUint16(1,true),mo=dV.getUint8(3),d=dV.getUint8(4),h=dV.getUint8(5),mi=dV.getUint8(6),s=dV.getUint8(7),wdJS=dV.getUint8(8); picoTimeDisplay.textContent=`Pico Time: ${formatDateTime(y,mo,d,h,mi,s,wdJS)}`; hideSpinner(); showToast("Pico time updated/confirmed"); }
+                    if(pL>=8){ const h=dV.getUint8(5),mi=dV.getUint8(6),s=dV.getUint8(7); picoTimeDisplay.textContent = formatTime(h, mi) + `:${String(s).padStart(2,'0')}`; hideSpinner(); showToast("Pico time updated/confirmed"); }
                     else{console.warn(`Incomplete Time notify. Len:${v.byteLength}`);}
                     break;
                 case NTF_ERROR_INVALID_COMMAND: console.error("Invalid Command notify from Pico."); showToast("Error: Pico reported invalid command.",4000); hideSpinner(); break;
@@ -772,100 +737,84 @@
     function onDisconnected(evt){
         const dN=bleDevice?getDeviceDisplayName(bleDevice.id):'Device';
         console.log(`${dN} disconnected.`);
-        releaseWakeLock(); // Release wake lock
-        isAutoCycleEnabled = false; // Reset state
+        releaseWakeLock();
         if(bleDevice){try{bleDevice.removeEventListener("gattserverdisconnected",onDisconnected);}catch(e){}}
-        const stopNotify = async (char, handler) => { if (char) { try { if (char.listening) { await char.stopNotifications(); char.listening = false; console.log(`Stopped notifications for ${char.uuid}`); } char.removeEventListener('characteristicvaluechanged', handler); } catch(e) { if (e.name !== 'NetworkError' && e.name !== 'InvalidStateError') { console.warn(`Error stopping notifications/listener for ${char.uuid}:`, e.name); } } } };
+        const stopNotify = async (char, handler) => { if (char && char.listening) { try { await char.stopNotifications(); char.listening = false; } catch(e) { if (e.name !== 'NetworkError') console.warn(`Error stopping notifications for ${char.uuid}:`, e.name); } char.removeEventListener('characteristicvaluechanged', handler); } };
         stopNotify(controlCharacteristic, handleControlNotification);
         stopNotify(combinedSensorCharacteristic, handleCombinedSensorNotification);
-        stopNotify(illuminanceCharacteristic, handleCombinedSensorNotification); // Although likely unused
         bleDevice=null; bleServer=null; recipeCharacteristic=null; customCharacteristic=null; controlCharacteristic=null;
-        illuminanceCharacteristic = null; combinedSensorCharacteristic = null;
+        scheduleCharacteristic = null;
         hideSpinner(); disableUIControls(); showToast(`${dN} disconnected`);
     }
 
-    // --- Recipe, Color, Commands ---
-    function populateRecipeGrid(){ recipeGrid.innerHTML=""; recipes.forEach((rN,idx)=>{ const cat=recipeCategories[rN]||"basic"; const item=document.createElement("div"); item.className="recipe-item"; item.dataset.category=cat; item.dataset.recipeIndex=idx; item.title=`Apply ${rN.replace(/_/g," ")}`; const clrDiv=document.createElement("div"); clrDiv.className="recipe-color"; clrDiv.style.backgroundColor=recipeColors[rN]||"#888"; const nameDiv=document.createElement("div"); nameDiv.className="recipe-name"; nameDiv.textContent=rN.replace(/_/g," ").replace(/\b\w/g,l=>l.toUpperCase()); item.addEventListener("click",()=>{if(!bleDevice||!bleDevice.gatt.connected)return showToast("Not connected."); applyPresetRecipe(idx,rN);}); item.appendChild(clrDiv); item.appendChild(nameDiv); recipeGrid.appendChild(item); }); initCategoryFilter(); }
+    function populateRecipeGrid(){ recipeGrid.innerHTML=""; recipes.forEach((rN,idx)=>{ const cat=recipeCategories[rN]||"basic"; const item=document.createElement("div"); item.className="recipe-item"; item.dataset.category=cat; item.dataset.recipeIndex=idx; const recipeDef = RECIPE_DEFINITIONS[rN]; item.title=`Apply ${recipeDef.name}`; const clrDiv=document.createElement("div"); clrDiv.className="recipe-color"; clrDiv.style.backgroundColor=recipeDef.color||"#888"; const nameDiv=document.createElement("div"); nameDiv.className="recipe-name"; nameDiv.textContent=recipeDef.name; item.addEventListener("click",()=>{if(!bleDevice||!bleDevice.gatt.connected)return showToast("Not connected."); applyPresetRecipe(idx,rN);}); item.appendChild(clrDiv); item.appendChild(nameDiv); recipeGrid.appendChild(item); }); initCategoryFilter(); }
     function initCategoryFilter(){ const btns=document.querySelectorAll(".category-btn"); btns.forEach(b=>{b.addEventListener("click",function(){btns.forEach(btn=>btn.classList.remove("active"));this.classList.add("active"); filterRecipesByCategory(this.dataset.category);});}); filterRecipesByCategory('all'); }
     function filterRecipesByCategory(cat){ document.querySelectorAll("#recipeGrid .recipe-item").forEach(item=>{item.style.display=(cat==="all"||item.dataset.category===cat)?"":"none";}); }
-    async function applyPresetRecipe(idx,name){ if(!recipeCharacteristic)return showToast("Not connected or recipe char missing."); const dN=name.replace(/_/g," "); console.log(`Applying preset: ${dN} (Idx:${idx})`); showSpinner(`Applying ${dN}...`); document.querySelectorAll("#recipeGrid .recipe-item").forEach(item=>item.classList.toggle("active",parseInt(item.dataset.recipeIndex)===idx)); resetColorSliders(); try{ await recipeCharacteristic.writeValue(new Uint8Array([idx])); setTimeout(()=>{hideSpinner();showToast(`Applied: ${dN}`);},300); /* Pico should send NTF_AUTO_CYCLE_DISABLED */ }catch(e){console.error("Error applying preset:",e);hideSpinner();showToast(`Failed recipe: ${e.message}`); document.querySelectorAll("#recipeGrid .recipe-item.active").forEach(item=>item.classList.remove("active"));} }
+    async function applyPresetRecipe(idx,name){ if(!recipeCharacteristic)return showToast("Not connected or recipe char missing."); const dN=RECIPE_DEFINITIONS[name].name; console.log(`Applying preset: ${dN} (Idx:${idx})`); showSpinner(`Applying ${dN}...`); document.querySelectorAll("#recipeGrid .recipe-item").forEach(item=>item.classList.toggle("active",parseInt(item.dataset.recipeIndex)===idx)); resetColorSliders(); try{ await recipeCharacteristic.writeValue(new Uint8Array([idx])); setTimeout(()=>{hideSpinner();showToast(`Applied: ${dN}`);},300); }catch(e){console.error("Error applying preset:",e);hideSpinner();showToast(`Failed recipe: ${e.message}`); document.querySelectorAll("#recipeGrid .recipe-item.active").forEach(item=>item.classList.remove("active"));} }
     function updateColorPreview(){ try{ const r=parseInt(redSlider.value),g=parseInt(greenSlider.value),b=parseInt(blueSlider.value),w=parseInt(whiteSlider.value); redValue.textContent=r; greenValue.textContent=g; blueValue.textContent=b; whiteValue.textContent=w; const dR=Math.min(255,r+Math.round(w/3)),dG=Math.min(255,g+Math.round(w/3)),dB=Math.min(255,b+Math.round(w/3)); colorPreviewOverlay.style.backgroundColor=`rgb(${dR},${dG},${dB})`; document.querySelectorAll("#recipeGrid .recipe-item.active").forEach(item=>item.classList.remove("active")); }catch(e){console.error("Err update preview:",e);} }
-    async function applyCustomColorHandler(){ if(!customCharacteristic)return showToast("Not connected or custom char missing."); const r=parseInt(redSlider.value),g=parseInt(greenSlider.value),b=parseInt(blueSlider.value),w=parseInt(whiteSlider.value); console.log(`Applying custom: R=${r} G=${g} B=${b} W=${w}`); showSpinner("Applying custom color..."); document.querySelectorAll("#recipeGrid .recipe-item.active").forEach(item=>item.classList.remove("active")); try{ await customCharacteristic.writeValue(new Uint8Array([r,g,b,w])); setTimeout(()=>{hideSpinner();showToast("Custom color applied");},300); /* Pico should send NTF_AUTO_CYCLE_DISABLED */ }catch(e){console.error("Error applying custom:",e);hideSpinner();showToast(`Failed color: ${e.message}`);} }
+    async function applyCustomColorHandler(){ if(!customCharacteristic)return showToast("Not connected or custom char missing."); const r=parseInt(redSlider.value),g=parseInt(greenSlider.value),b=parseInt(blueSlider.value),w=parseInt(whiteSlider.value); console.log(`Applying custom: R=${r} G=${g} B=${b} W=${w}`); showSpinner("Applying custom color..."); document.querySelectorAll("#recipeGrid .recipe-item.active").forEach(item=>item.classList.remove("active")); try{ await customCharacteristic.writeValue(new Uint8Array([r,g,b,w])); setTimeout(()=>{hideSpinner();showToast("Custom color applied");},300); }catch(e){console.error("Error applying custom:",e);hideSpinner();showToast(`Failed color: ${e.message}`);} }
     async function sendCommand(cmdCode,payload=null){ if(!controlCharacteristic){showToast("Cmd Error: Not connected.");return Promise.reject(new Error("Not Connected"));} console.log(`Sending Cmd:${cmdCode}, Payload:`,payload); let dTS; if(payload instanceof Uint8Array||payload instanceof ArrayBuffer){const pB=new Uint8Array(payload);dTS=new Uint8Array(1+pB.byteLength);dTS[0]=cmdCode;dTS.set(pB,1);}else if(Array.isArray(payload)){dTS=new Uint8Array(1+payload.length);dTS[0]=cmdCode;dTS.set(payload,1);}else if(payload===null||payload===undefined){dTS=new Uint8Array([cmdCode]);}else{return Promise.reject(new Error("Invalid payload type"));} console.log("Writing control:",dTS); try{await controlCharacteristic.writeValueWithResponse(dTS); console.log(`Cmd ${cmdCode} sent.`); return Promise.resolve();}catch(e){console.error(`Error sending cmd ${cmdCode}:`,e); showToast(`Cmd Failed: ${e.message}`); return Promise.reject(e);}}
-    function sendLightsOn(){ showSpinner("Turning Lights ON..."); sendCommand(CMD_SET_ON_ACTIVE_RECIPE).then(()=>{setTimeout(()=>{if(spinnerOverlay.classList.contains('active'))hideSpinner();showToast("Lights ON cmd sent");},1500); /* Pico should send NTF_AUTO_CYCLE_DISABLED */ }).catch(e=>{hideSpinner();}); }
-    function sendLightsOff(){ showSpinner("Turning Lights OFF..."); sendCommand(CMD_SET_OFF).then(()=>{ document.querySelectorAll("#recipeGrid .recipe-item.active").forEach(i=>i.classList.remove("active")); const oI=recipes.indexOf('off'); if(oI>=0){document.querySelector(`#recipeGrid .recipe-item[data-recipe-index="${oI}"]`)?.classList.add('active');} resetColorSliders(); setTimeout(()=>{hideSpinner();showToast("Lights OFF cmd sent");},300); /* Pico should send NTF_AUTO_CYCLE_DISABLED */ }).catch(e=>{hideSpinner();}); }
+    function sendLightsOn(){ showSpinner("Turning Lights ON..."); sendCommand(CMD_SET_ON_ACTIVE_RECIPE).then(()=>{setTimeout(()=>{if(spinnerOverlay.classList.contains('active'))hideSpinner();showToast("Lights ON cmd sent");},1500); }).catch(e=>{hideSpinner();}); }
+    function sendLightsOff(){ showSpinner("Turning Lights OFF..."); sendCommand(CMD_SET_OFF).then(()=>{ document.querySelectorAll("#recipeGrid .recipe-item.active").forEach(i=>i.classList.remove("active")); const oI=recipes.indexOf('off'); if(oI>=0){document.querySelector(`#recipeGrid .recipe-item[data-recipe-index="${oI}"]`)?.classList.add('active');} resetColorSliders(); setTimeout(()=>{hideSpinner();showToast("Lights OFF cmd sent");},300); }).catch(e=>{hideSpinner();}); }
 
-    // --- Custom Recipes (Local Storage) ---
     function saveCustomRecipe(){ const r=parseInt(redSlider.value),g=parseInt(greenSlider.value),b=parseInt(blueSlider.value),w=parseInt(whiteSlider.value); const n=prompt("Recipe name:","My Light"); if(!n||!n.trim())return showToast("Name empty."); const nR={name:n.trim(),r,g,b,w,id:Date.now()}; customRecipes.push(nR); saveCustomRecipesToStorage(); displayCustomRecipes(); showToast(`Recipe "${nR.name}" saved.`); }
     function clearCustomRecipes(){ if(customRecipes.length===0)return showToast("No recipes."); if(confirm("Delete ALL custom recipes?")){customRecipes=[];saveCustomRecipesToStorage();displayCustomRecipes();showToast("Custom recipes cleared.");} }
     function displayCustomRecipes(){ customRecipesGrid.innerHTML=""; clearRecipesBtn.disabled=(customRecipes.length===0); if(customRecipes.length===0){customRecipesGrid.innerHTML='<p class="no-recipes-msg">No saved recipes.</p>';return;} customRecipes.forEach(r=>{const card=document.createElement("div");card.className="recipe-card"; const clrDiv=document.createElement("div");clrDiv.className="recipe-color"; const dR=Math.min(255,r.r+Math.round(r.w/3)),dG=Math.min(255,r.g+Math.round(r.w/3)),dB=Math.min(255,r.b+Math.round(r.w/3)); clrDiv.style.backgroundColor=`rgb(${dR},${dG},${dB})`; const titDiv=document.createElement("div");titDiv.className="recipe-title";titDiv.textContent=r.name; const txtDiv=document.createElement("div");txtDiv.className="recipe-text";txtDiv.textContent=`R:${r.r} G:${r.g} B:${r.b} W:${r.w}`; const btnsDiv=document.createElement("div");btnsDiv.className="recipe-buttons"; const appBtn=document.createElement("button");appBtn.className="recipe-button";appBtn.innerHTML='<i class="fa-solid fa-play"></i> Apply';appBtn.title=`Apply ${r.name}`; appBtn.disabled=!(bleDevice&&bleDevice.gatt.connected); appBtn.addEventListener("click",()=>applyCustomRecipe(r)); const delBtn=document.createElement("button");delBtn.className="recipe-button delete-btn";delBtn.innerHTML='<i class="fa-solid fa-trash-can"></i> Del';delBtn.title=`Delete ${r.name}`; delBtn.addEventListener("click",()=>deleteCustomRecipe(r.id)); btnsDiv.appendChild(appBtn);btnsDiv.appendChild(delBtn); card.appendChild(clrDiv);card.appendChild(titDiv);card.appendChild(txtDiv);card.appendChild(btnsDiv); customRecipesGrid.appendChild(card);}); }
-    async function applyCustomRecipe(r){ if(!customCharacteristic)return showToast("Not connected or custom char missing."); console.log(`Applying custom recipe: ${r.name}`); showSpinner(`Applying ${r.name}...`); redSlider.value=r.r;greenSlider.value=r.g;blueSlider.value=r.b;whiteSlider.value=r.w; updateColorPreview(); document.querySelectorAll("#recipeGrid .recipe-item.active").forEach(item=>item.classList.remove("active")); try{ await customCharacteristic.writeValue(new Uint8Array([r.r,r.g,r.b,r.w])); setTimeout(()=>{hideSpinner();showToast(`Applied: ${r.name}`);},300); /* Pico should send NTF_AUTO_CYCLE_DISABLED */ }catch(e){console.error("Error apply custom recipe:",e);hideSpinner();showToast(`Failed apply recipe: ${e.message}`);} }
+    async function applyCustomRecipe(r){ if(!customCharacteristic)return showToast("Not connected or custom char missing."); console.log(`Applying custom recipe: ${r.name}`); showSpinner(`Applying ${r.name}...`); redSlider.value=r.r;greenSlider.value=r.g;blueSlider.value=r.b;whiteSlider.value=r.w; updateColorPreview(); document.querySelectorAll("#recipeGrid .recipe-item.active").forEach(item=>item.classList.remove("active")); try{ await customCharacteristic.writeValue(new Uint8Array([r.r,r.g,r.b,r.w])); setTimeout(()=>{hideSpinner();showToast(`Applied: ${r.name}`);},300); }catch(e){console.error("Error apply custom recipe:",e);hideSpinner();showToast(`Failed apply recipe: ${e.message}`);} }
     function deleteCustomRecipe(rId){ const idx=customRecipes.findIndex(r=>r.id===rId); if(idx===-1)return; const rN=customRecipes[idx].name; if(confirm(`Delete recipe "${rN}"?`)){customRecipes.splice(idx,1);saveCustomRecipesToStorage();displayCustomRecipes();showToast(`Recipe "${rN}" deleted.`);} }
     function loadCustomRecipes(){ const sD=localStorage.getItem("picoLightCustomRecipes"); try{return sD?JSON.parse(sD):[];}catch(e){console.error("LS Error parsing recipes:",e);localStorage.removeItem("picoLightCustomRecipes");return[];} }
     function saveCustomRecipesToStorage(){ try{localStorage.setItem("picoLightCustomRecipes",JSON.stringify(customRecipes));}catch(e){console.error("LS Error saving recipes:",e);showToast("Could not save recipes.");} }
 
-    // --- Schedule & Time ---
-    async function applyScheduleTimeHandler(){ if(!controlCharacteristic)return showToast("Not connected."); let onH=parseInt(onHourInput.value),onM=parseInt(onMinuteInput.value),offH=parseInt(offHourInput.value),offM=parseInt(offMinuteInput.value); if(isNaN(onH)||onH<0||onH>23)return showToast("Invalid ON hour."); if(isNaN(onM)||onM<0||onM>59)return showToast("Invalid ON minute."); if(isNaN(offH)||offH<0||offH>23)return showToast("Invalid OFF hour."); if(isNaN(offM)||offM<0||offM>59)return showToast("Invalid OFF minute."); console.log(`Sending schedule: ON=${formatTime(onH,onM)}, OFF=${formatTime(offH,offM)}`); showSpinner("Saving schedule times..."); try{ await sendCommand(CMD_SET_ON_TIME,[onH,onM]); await new Promise(r=>setTimeout(r,150)); await sendCommand(CMD_SET_OFF_TIME,[offH,offM]); setTimeout(()=>{if(spinnerOverlay.classList.contains('active'))hideSpinner();showToast(`Schedule times sent`);},2500); /* Pico should send NTF_SETTINGS_UPDATE */ }catch(e){hideSpinner();showToast(`Failed save times: ${e.message||'Comm error'}`);} }
-    async function setActiveRecipeHandler(){ if(!controlCharacteristic)return showToast("Not connected."); const selIdx=parseInt(activeRecipeSelect.value); if(isNaN(selIdx)||activeRecipeSelect.value===""||selIdx<0||selIdx>=recipes.length||recipes[selIdx]==='off'){return showToast("Select valid recipe (not 'Off').");} const rN=recipes[selIdx]; const dN=rN.replace(/_/g," "); console.log(`Setting Auto Recipe: ${dN} (Idx:${selIdx})`); showSpinner(`Setting Auto Recipe to ${dN}...`); try{ await sendCommand(CMD_SET_ACTIVE_RECIPE_IDX,[selIdx]); setTimeout(()=>{if(spinnerOverlay.classList.contains('active'))hideSpinner();showToast(`Auto ON Recipe selection sent`);},2500); /* Pico should send NTF_SETTINGS_UPDATE */ }catch(e){hideSpinner();showToast(`Failed set auto recipe: ${e.message||'Comm error'}`);} }
-    async function enableAutoCycleHandler() {
-        if (!controlCharacteristic) return showToast("Not connected.");
-        console.log("Attempting to enable Auto-Cycle by sending Toggle command...");
-        showSpinner("Enabling Auto-Cycle...");
-        sendCommand(CMD_TOGGLE_AUTO_CYCLE)
-            .then(() => {
-                console.log("Toggle Auto-Cycle command sent (for enabling).");
-                setTimeout(() => { if (spinnerOverlay.classList.contains('active')) { hideSpinner(); if (!isAutoCycleEnabled) { showToast("Enable command sent, check Pico status.", 3000); } } }, 2500);
-            })
-            .catch(e => { hideSpinner(); showToast(`Failed to enable Auto-Cycle: ${e.message}`); });
+    function timeToMinutes(timeStr) { const [h, m] = timeStr.split(':').map(Number); return h * 60 + m; }
+    function populateRecipeSelect() { scheduleRecipeSelect.innerHTML = ''; for (const key in RECIPE_DEFINITIONS) { const option = document.createElement('option'); option.value = key; option.textContent = RECIPE_DEFINITIONS[key].name; scheduleRecipeSelect.appendChild(option); } }
+    function renderScheduleBlocks() {
+        scheduleBlockList.innerHTML = '';
+        if (scheduleBlocks.length === 0) { scheduleBlockList.innerHTML = `<p style="text-align:center; color: var(--icon-color);">${bleDevice && bleDevice.gatt.connected ? 'No schedule blocks defined.' : 'Connect to device to load schedule.'}</p>`; }
+        scheduleBlocks.sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+        scheduleBlocks.forEach((block, index) => { const item = document.createElement('div'); item.className = 'schedule-block-item'; item.innerHTML = `<span><strong>${block.startTime} - ${block.endTime}</strong>: ${RECIPE_DEFINITIONS[block.recipe]?.name || 'Unknown'}</span><button class="delete-block-btn" data-index="${index}" title="Delete Block">&times;</button>`; scheduleBlockList.appendChild(item); });
+        document.querySelectorAll('.delete-block-btn').forEach(btn => btn.addEventListener('click', handleDeleteBlock));
+        const isConnected = bleDevice && bleDevice.gatt.connected;
+        saveScheduleBtn.disabled = !isConnected;
+        clearScheduleBtn.disabled = !isConnected || scheduleBlocks.length === 0;
+    }
+    function handleAddBlock() {
+        const startTime = startTimeInput.value, endTime = endTimeInput.value, recipe = scheduleRecipeSelect.value;
+        if (!startTime || !endTime) return showToast("Start and End times are required.");
+        if (timeToMinutes(startTime) >= timeToMinutes(endTime)) return showToast("End time must be after start time.");
+        scheduleBlocks.push({ startTime, endTime, recipe, enabled: true });
+        renderScheduleBlocks();
+    }
+    function handleDeleteBlock(event) { scheduleBlocks.splice(parseInt(event.target.dataset.index), 1); renderScheduleBlocks(); }
+    function handleClearSchedule() { if (confirm("Clear all schedule blocks? You must click 'Save Schedule' to send this change to the device.")) { scheduleBlocks = []; renderScheduleBlocks(); } }
+    async function handleSaveSchedule() {
+        if (!scheduleCharacteristic) return showToast("Not connected or schedule characteristic missing.");
+        showSpinner("Saving schedule...");
+        const numBlocks = scheduleBlocks.length;
+        const payload = new Uint8Array(2 + numBlocks * 6);
+        const dataView = new DataView(payload.buffer);
+        dataView.setUint8(0, 1); dataView.setUint8(1, numBlocks); let offset = 2;
+        scheduleBlocks.forEach(block => {
+            const [startH, startM] = block.startTime.split(':').map(Number); const [endH, endM] = block.endTime.split(':').map(Number);
+            const recipeCode = RECIPE_DEFINITIONS[block.recipe].code;
+            dataView.setUint8(offset++, startH); dataView.setUint8(offset++, startM); dataView.setUint8(offset++, endH); dataView.setUint8(offset++, endM);
+            dataView.setUint8(offset++, recipeCode); dataView.setUint8(offset++, block.enabled ? 1 : 0);
+        });
+        try { await scheduleCharacteristic.writeValue(payload); hideSpinner(); showToast("Schedule saved successfully!"); }
+        catch (error) { console.error("Error saving schedule:", error); hideSpinner(); showToast(`Error saving schedule: ${error.message}`, 5000); }
     }
     function requestCurrentStatusAndSettings(){
         if(!controlCharacteristic)return showToast("Cannot refresh: Not connected.");
-        console.log("Requesting settings (schedule, recipe idx, memory, time, auto-cycle state)...");
-        scheduleStatus.textContent="Requesting...";
-        picoTimeDisplay.textContent="Pico Time: Requesting...";
-        picoMemoryDisplayFooter.textContent='Requesting...';
-        enableAutoCycleBtn.disabled = true; // Disable button while requesting
+        console.log("Requesting status (schedule, time, memory)...");
         showSpinner("Requesting status...");
         sendCommand(CMD_REQUEST_SETTINGS)
          .then(()=>{
-            console.log("Settings request cmd sent.");
-            setTimeout(()=>{ // Timeout if no notifications received
-                 if(spinnerOverlay.classList.contains('active')){
-                    hideSpinner(); showToast("Status requested. Check Pico if no update.",4000);
-                    scheduleStatus.textContent="Request timed out."; picoTimeDisplay.textContent="Pico Time: Request timed out."; picoMemoryDisplayFooter.textContent = 'Timeout';
-                    if (bleDevice && bleDevice.gatt.connected) { enableAutoCycleBtn.disabled = isAutoCycleEnabled; } // Re-enable based on last known state
-                 }
-             },4000);
+            console.log("Status request cmd sent.");
+            setTimeout(()=>{ if(spinnerOverlay.classList.contains('active')){ hideSpinner(); showToast("Status requested. Check Pico if no update.",4000); } }, 4000);
          })
-         .catch(e=>{
-             hideSpinner(); scheduleStatus.textContent="Request Failed."; picoTimeDisplay.textContent="Pico Time: Request Failed."; picoMemoryDisplayFooter.textContent = 'Request Error';
-             if (bleDevice && bleDevice.gatt.connected) { enableAutoCycleBtn.disabled = false; } // Default to enabled if request fails
-         });
+         .catch(e=>{ hideSpinner(); });
     }
-    async function sendTimeToPico(){ if(!controlCharacteristic)return showToast("Not connected."); const now=new Date(),yr=now.getFullYear(),mo=now.getMonth()+1,d=now.getDate(),h=now.getHours(),mi=now.getMinutes(),s=now.getSeconds(),wdJS=now.getDay(); const tS=formatDateTime(yr,mo,d,h,mi,s,wdJS); console.log(`Sending time: ${tS}`); showSpinner("Syncing Pico time..."); const buf=new ArrayBuffer(8); const dV=new DataView(buf); let o=0; dV.setUint16(o,yr,true);o+=2; dV.setUint8(o,mo);o+=1; dV.setUint8(o,d);o+=1; dV.setUint8(o,h);o+=1; dV.setUint8(o,mi);o+=1; dV.setUint8(o,s);o+=1; dV.setUint8(o,wdJS);o+=1; try{await sendCommand(CMD_SET_RTC_TIME,buf); console.log("Time sync cmd sent."); /* Wait for NTF_TIME_UPDATE */ }catch(e){hideSpinner();console.error("Time Sync Error:",e);showToast(`Time Sync Failed: ${e.message}`);} }
+    async function sendTimeToPico(){ if(!controlCharacteristic)return showToast("Not connected."); const now=new Date(),yr=now.getFullYear(),mo=now.getMonth()+1,d=now.getDate(),h=now.getHours(),mi=now.getMinutes(),s=now.getSeconds(),wdJS=now.getDay(); const tS=formatDateTime(yr,mo,d,h,mi,s,wdJS); console.log(`Sending time: ${tS}`); showSpinner("Syncing Pico time..."); const buf=new ArrayBuffer(8); const dV=new DataView(buf); let o=0; dV.setUint16(o,yr,true);o+=2; dV.setUint8(o,mo);o+=1; dV.setUint8(o,d);o+=1; dV.setUint8(o,h);o+=1; dV.setUint8(o,mi);o+=1; dV.setUint8(o,s);o+=1; dV.setUint8(o,wdJS);o+=1; try{await sendCommand(CMD_SET_RTC_TIME,buf); console.log("Time sync cmd sent."); }catch(e){hideSpinner();console.error("Time Sync Error:",e);showToast(`Time Sync Failed: ${e.message}`);} }
 
-    // --- Sensor Control (Manual Refresh) ---
-    async function readSensorData() {
-        if (!bleDevice || !bleDevice.gatt.connected) return showToast("Not connected.");
-        if (!combinedSensorCharacteristic) { showToast("Sensor characteristic not found."); showParsingErrorOnAllSensors('No Char'); return; }
-        if (!combinedSensorCharacteristic.properties.read) { showToast("Sensor refresh not supported."); showParsingErrorOnAllSensors('No Read'); return; }
-        console.log("Reading combined sensor data..."); showSpinner("Reading sensor data..."); refreshSensorBtn.disabled = true;
-        displayTemperature(null, true); updateSensorDisplay(sensorHumidDisplay, 'Reading...', ''); updateSensorDisplay(sensorCO2Display, 'Reading...', ''); updateSensorDisplay(sensorPressureDisplay, 'Reading...', ''); updateSensorDisplay(sensorLuxDisplay, 'Reading...', '');
-        let errorMsg = "Sensor read failed";
-        try {
-            const value = await retryBleOperation(async () => combinedSensorCharacteristic.readValue(), `Combined Sensor Read`, 2, 200);
-            if (value instanceof DataView) {
-                const decoder = new TextDecoder('utf-8'); const sensorString = decoder.decode(value); const parts = sensorString.split(','); console.log(`Combined Sensor Read Result: "${sensorString}"`);
-                if (parts.length === 5) { const tempStr = parts[0]; const tempC = (tempStr === null || tempStr.toUpperCase() === 'N/A' || tempStr.trim() === '') ? null : parseFloat(tempStr); displayTemperature(isNaN(tempC) ? null : tempC); updateSensorDisplay(sensorHumidDisplay, parts[1], '%'); updateSensorDisplay(sensorCO2Display, parts[2], 'ppm'); updateSensorDisplay(sensorPressureDisplay, parts[3], 'hPa'); updateSensorDisplay(sensorLuxDisplay, parts[4], 'lux'); showToast("Sensor data refreshed."); }
-                else { console.error(`Combined sensor read string parts error (${parts.length}): "${sensorString}"`); showParsingErrorOnAllSensors('FormatErr'); showToast("Error parsing sensor data format."); }
-            } else { console.error("Read combined sensor data returned unexpected type:", value); showParsingErrorOnAllSensors('ReadErr'); showToast("Error reading sensor data type."); }
-        } catch (error) {
-             console.error("Error reading combined sensor data:", error); showParsingErrorOnAllSensors('ReadErr');
-             errorMsg = `Sensor read failed: ${error.message}`; if (error.name === 'NotFoundError') { errorMsg = "Sensor characteristic not found during read."; } else if (error.name === 'NotAllowedError') { errorMsg = "Sensor read not allowed (permissions?)."; } else if (error.name === 'NetworkError') { errorMsg = "Sensor read failed: Disconnected?"; } showToast(errorMsg);
-        } finally { hideSpinner(); if (bleDevice && bleDevice.gatt.connected) { refreshSensorBtn.disabled = false; } }
-    }
-
-    // --- Run Initialization on Load ---
     document.addEventListener("DOMContentLoaded", initialize);
 
 </script>
